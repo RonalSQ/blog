@@ -1,0 +1,9 @@
+django
+django-unfold
+python-dotenv
+psycopg2-binary
+dj-database-url
+whitenoise
+gunicorn
+django-storages
+boto3

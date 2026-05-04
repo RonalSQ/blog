@@ -1,0 +1,22 @@
+<!-- auth_header.html — Cabecera minimalista para páginas de Auth (login, registro, recuperar) -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 py-4
+               bg-base-light/80 dark:bg-base-dark/80 backdrop-blur-xl
+               border-b border-black/5 dark:border-white/5">
+
+    <!-- Logo + Nombre (clic → ir a Inicio) -->
+    <a href="{% url 'home' %}" class="flex items-center gap-2 group">
+        <div class="w-9 h-9 bg-brand-800 dark:bg-brand-500 rounded-xl flex items-center justify-center
+                    text-white dark:text-brand-950 shadow-md transition-transform group-hover:rotate-12 duration-300">
+            <i data-lucide="atom" class="w-5 h-5"></i>
+        </div>
+        <span class="font-black text-lg tracking-tighter text-base-textLight dark:text-white">ClubsHub</span>
+    </a>
+
+    <!-- Botón Volver -->
+    <a href="{% url 'home' %}"
+       class="flex items-center gap-1.5 text-sm font-medium text-base-textLight/60 dark:text-white/60
+              hover:text-brand-800 dark:hover:text-brand-400 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Volver al inicio
+    </a>
+</header>

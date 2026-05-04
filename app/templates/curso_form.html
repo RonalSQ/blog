@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if curso %}Editar Curso{% else %}Nuevo Curso{% endif %} — ClubsHub</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Satoshi', 'sans-serif'] },
+                    colors: {
+                        brand: { 50:'#f0fdfa',100:'#ccfbf1',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#01696f',900:'#134e4a',950:'#042f2e' },
+                        base: { light:'#f7f6f2',dark:'#121212',cardLight:'#ffffff',cardDark:'#1e1e1e',textLight:'#28251d',textDark:'#e4e4e7' }
+                    },
+                    spacing: { 'fluid-gutter':'clamp(1rem, 3vw, 3rem)' }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base { body { @apply bg-base-light text-base-textLight font-sans antialiased; } .dark body { @apply bg-base-dark text-base-textDark; } }
+        @layer components {
+            .form-label { @apply block text-sm font-bold mb-2 text-base-textLight/80 dark:text-white/70; }
+            .form-input { @apply w-full px-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-base-textLight dark:text-white placeholder-black/30 dark:placeholder-white/30; }
+            .form-textarea { @apply form-input resize-none; }
+            .btn-primary { @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-800 text-white font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-800/20 active:scale-95; }
+            .btn-ghost { @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-black/10 dark:border-white/10 font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-all; }
+            .btn-danger { @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold border border-red-100 dark:border-red-900/30 hover:bg-red-100 transition-all; }
+        }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen pt-20">
+
+    {% include 'nav.html' %}
+
+    <!-- Mensajes -->
+    {% if messages %}
+    <div class="fixed top-20 right-4 z-[100] flex flex-col gap-2" x-data>
+        {% for message in messages %}
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show" x-transition
+             class="px-5 py-3 rounded-xl shadow-xl font-medium text-sm flex items-center gap-3
+             {% if message.tags == 'error' %}bg-red-600 text-white{% else %}bg-brand-800 text-white{% endif %}">
+            {{ message }}
+            <button @click="show = false" class="ml-2 opacity-70 hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="flex-1 w-full max-w-3xl mx-auto px-fluid-gutter pt-6 pb-12"
+          x-data="cursoForm()"
+          x-init="$nextTick(() => lucide.createIcons())">
+
+        <!-- Encabezado -->
+        <div class="flex items-center gap-4 mb-10">
+            <a href="{% url 'cursos' %}" class="btn-ghost text-sm">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver
+            </a>
+            <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-brand-800 dark:text-brand-400 mb-1">
+                    {% if curso %}Editando curso{% else %}Nuevo curso{% endif %}
+                </p>
+                <h1 class="text-3xl font-black leading-tight">
+                    {% if curso %}{{ curso.titulo|truncatewords:5 }}{% else %}Crear Curso{% endif %}
+                </h1>
+            </div>
+        </div>
+
+        <!-- Card formulario -->
+        <div class="bg-white dark:bg-base-cardDark rounded-3xl border border-black/5 dark:border-white/5 shadow-xl shadow-black/5 overflow-hidden">
+            <form method="POST" enctype="multipart/form-data" class="divide-y divide-black/5 dark:divide-white/5">
+                {% csrf_token %}
+
+                <!-- Imagen portada -->
+                <div class="p-8">
+                    <label class="form-label">Imagen de Portada
+                        <span class="font-normal text-black/40 dark:text-white/40">(opcional)</span>
+                    </label>
+                    <div class="relative w-full rounded-2xl overflow-hidden bg-gradient-to-br from-brand-700 to-brand-900 mb-4 group cursor-pointer"
+                         style="padding-bottom: 56.25%;"
+                         @click="$refs.imgInput.click()">
+                        <div style="position:absolute;inset:0;">
+                        {% if curso and curso.imagen_portada %}
+                        <img :src="preview || '{{ curso.imagen_portada.url }}'" class="w-full h-full object-cover" alt="Portada">
+                        {% else %}
+                        <img x-show="preview" :src="preview" class="w-full h-full object-cover" alt="Preview">
+                        {% endif %}
+                        <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/80 transition-all"
+                             :class="preview ? 'bg-black/40 opacity-0 group-hover:opacity-100' : 'bg-black/10'">
+                            <i data-lucide="image-plus" class="w-10 h-10 opacity-60"></i>
+                            <span class="text-sm font-bold opacity-80">Haz clic para subir imagen</span>
+                        </div>
+                        </div>
+                    </div>
+                    <input type="file" name="imagen_portada" accept="image/*" x-ref="imgInput"
+                           @change="onImage($event)" class="hidden">
+                    {% if curso and curso.imagen_portada %}
+                    <label class="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 cursor-pointer hover:underline w-fit mt-2">
+                        <input type="checkbox" name="eliminar_imagen" value="1" class="rounded">
+                        Eliminar imagen actual
+                    </label>
+                    {% endif %}
+                </div>
+
+                <!-- Título -->
+                <div class="p-8">
+                    <label class="form-label" for="id_titulo">Título del Curso *</label>
+                    <input type="text" id="id_titulo" name="titulo" required
+                           class="form-input text-lg font-bold"
+                           placeholder="Ej: Introducción a la Robótica..."
+                           value="{{ curso.titulo|default:'' }}">
+                </div>
+
+                <!-- Descripción -->
+                <div class="p-8">
+                    <label class="form-label" for="id_descripcion">Descripción *</label>
+                    <textarea id="id_descripcion" name="descripcion" rows="6" required
+                              class="form-textarea leading-relaxed"
+                              placeholder="Describe el contenido, objetivos y a quién va dirigido el curso...">{{ curso.descripcion|default:'' }}</textarea>
+                    <p class="text-xs text-black/40 dark:text-white/40 mt-2">
+                        Esta descripción aparecerá en la página del curso y en el catálogo.
+                    </p>
+                </div>
+
+                {% if curso %}
+                <!-- Info de módulos existentes (solo edición) -->
+                <div class="p-8 bg-brand-50/50 dark:bg-brand-900/10">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-sm text-brand-800 dark:text-brand-400 mb-1">Módulos del curso</p>
+                            <p class="text-sm text-black/50 dark:text-white/40">
+                                {{ curso.modulos.count }} módulo{{ curso.modulos.count|pluralize }} registrado{{ curso.modulos.count|pluralize }}
+                            </p>
+                        </div>
+                        <a href="{% url 'modulo_crear' curso.pk %}" class="btn-primary text-sm py-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Agregar módulo
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Acciones -->
+                <div class="p-8 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex gap-3 flex-wrap">
+                        <button type="submit" class="btn-primary">
+                            <i data-lucide="{% if curso %}save{% else %}book-plus{% endif %}" class="w-5 h-5"></i>
+                            {% if curso %}Guardar Cambios{% else %}Crear Curso{% endif %}
+                        </button>
+                        <a href="{% url 'cursos' %}" class="btn-ghost">Cancelar</a>
+                    </div>
+                    {% if curso %}
+                    <form method="POST" action="{% url 'curso_eliminar' curso.pk %}" class="m-0"
+                          onsubmit="return confirm('¿Eliminar este curso y todos sus módulos? Esta acción es irreversible.')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-danger">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar Curso
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="py-10 border-t border-black/5 dark:border-white/5 bg-white dark:bg-black/20 mt-auto">
+        <div class="max-w-3xl mx-auto px-fluid-gutter flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i data-lucide="atom" class="w-5 h-5 text-brand-800 dark:text-brand-500"></i>
+                <span class="font-black">ClubsHub</span>
+            </div>
+            <p class="text-sm text-base-textLight/50 dark:text-white/40">&copy; 2026 Universidad</p>
+        </div>
+    </footer>
+
+    <script>
+        function cursoForm() {
+            return {
+                preview: null,
+                onImage(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = e => { this.preview = e.target.result; };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+    </script>
+</body>
+</html>

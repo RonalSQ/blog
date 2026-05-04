@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClubsHub - Inicio</title>
+    <meta name="description" content="Plataforma de clubes universitarios. Explora cursos, noticias y eventos de tu institución.">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Satoshi', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+                            400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+                            800: '#01696f', 900: '#134e4a', 950: '#042f2e',
+                        },
+                        base: {
+                            light: '#f7f6f2', dark: '#121212', cardLight: '#ffffff',
+                            cardDark: '#1e1e1e', textLight: '#28251d', textDark: '#e4e4e7',
+                        }
+                    },
+                    fontSize: {
+                        'fluid-sm': 'clamp(0.875rem, 0.8vw + 0.7rem, 1rem)',
+                        'fluid-base': 'clamp(1rem, 1vw + 0.8rem, 1.125rem)',
+                        'fluid-lg': 'clamp(1.125rem, 1.5vw + 0.9rem, 1.5rem)',
+                        'fluid-4xl': 'clamp(3rem, 5vw + 2rem, 6rem)',
+                    },
+                    spacing: {
+                        'fluid-gutter': 'clamp(1rem, 3vw, 3rem)',
+                        'fluid-section': 'clamp(4rem, 8vw, 8rem)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-base-light text-base-textLight font-sans antialiased transition-colors duration-300; }
+            .dark body { @apply bg-base-dark text-base-textDark; }
+        }
+        @layer components {
+            .btn { @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 active:scale-95; }
+            .card { @apply bg-base-cardLight dark:bg-base-cardDark rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl; }
+        }
+        .gsap-reveal { opacity: 0; transform: translateY(40px); }
+    </style>
+</head>
+<body x-data="homeApp()" x-init="initApp()" class="overflow-x-hidden">
+
+    {% include 'nav.html' %}
+
+    {% if messages %}
+    <div class="fixed top-20 right-4 z-[100] flex flex-col gap-2" x-data>
+        {% for message in messages %}
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show" x-transition
+             class="px-5 py-3 rounded-xl shadow-xl font-medium text-sm flex items-center gap-3
+             {% if message.tags == 'error' %}bg-red-600 text-white{% else %}bg-brand-800 text-white{% endif %}">
+            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+            {{ message }}
+            <button @click="show = false" class="ml-2 opacity-70 hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main>
+        <!-- Hero Carousel (Parallax) -->
+        <section class="relative h-[100dvh] min-h-[600px] w-full overflow-hidden flex items-center bg-black">
+            <div class="absolute inset-0 w-full h-full hero-bg">
+                <template x-for="(slide, index) in heroSlides" :key="index">
+                    <img :src="slide.image" :alt="slide.title"
+                         class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
+                         :class="currentHeroSlide === index ? 'opacity-50 scale-105' : 'opacity-0 scale-100'"
+                         style="transform-origin: center;">
+                </template>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+            </div>
+
+            <div class="relative z-10 w-full max-w-[1920px] mx-auto px-fluid-gutter pt-20">
+                <div class="max-w-3xl">
+                    <template x-for="(slide, index) in heroSlides" :key="index">
+                        <div x-show="currentHeroSlide === index"
+                             x-transition:enter="transition ease-out duration-700 delay-300"
+                             x-transition:enter-start="opacity-0 translate-y-8"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-300 absolute inset-0"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-8">
+                            <span class="inline-block py-1 px-3 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm" x-text="slide.badge"></span>
+                            <h1 class="text-fluid-4xl font-black text-white leading-[1.1] mb-6 drop-shadow-lg" x-text="slide.title"></h1>
+                            <p class="text-fluid-lg text-white/80 font-medium mb-10 max-w-2xl drop-shadow-md" x-text="slide.subtitle"></p>
+                            <div class="flex flex-wrap gap-4">
+                                <a href="{% url 'cursos' %}" class="btn bg-white text-black hover:bg-brand-50 hover:scale-105 px-8">Explorar Cursos</a>
+                                <a href="{% url 'noticias' %}" class="btn border border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8">Últimas Noticias</a>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Carousel Controls -->
+            <div class="absolute bottom-10 left-0 w-full z-20">
+                <div class="w-full max-w-[1920px] mx-auto px-fluid-gutter flex justify-between items-center">
+                    <div class="flex gap-3">
+                        <template x-for="(slide, index) in heroSlides" :key="index">
+                            <button @click="currentHeroSlide = index; resetHeroTimer()"
+                                    class="w-16 h-1.5 rounded-full overflow-hidden bg-white/20 transition-all duration-300 relative">
+                                <div class="absolute top-0 left-0 h-full bg-white transition-all duration-[5000ms] ease-linear"
+                                     :style="currentHeroSlide === index ? 'width: 100%' : (currentHeroSlide > index ? 'width: 100%' : 'width: 0%')"></div>
+                            </button>
+                        </template>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="prevSlide" class="w-12 h-12 rounded-full border border-white/20 bg-black/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors"><i data-lucide="chevron-left"></i></button>
+                        <button @click="nextSlide" class="w-12 h-12 rounded-full border border-white/20 bg-black/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Latest News Section (datos reales desde Django) -->
+        <section class="py-fluid-section relative z-20">
+            <div class="w-full max-w-[1920px] mx-auto px-fluid-gutter">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 gsap-reveal">
+                    <div class="max-w-2xl">
+                        <h2 class="text-4xl md:text-5xl font-black mb-4"><span class="text-brand-800 dark:text-brand-400">Descubre</span> lo último</h2>
+                        <p class="text-fluid-base text-base-textLight/70 dark:text-base-textDark/70">Proyectos, eventos y logros de nuestra comunidad de clubes universitarios.</p>
+                    </div>
+                    <a href="{% url 'noticias' %}" class="btn border-2 border-brand-800 text-brand-800 hover:bg-brand-50 dark:border-brand-500 dark:text-brand-500 dark:hover:bg-brand-900/30 shrink-0 group">
+                        Ver todo el feed
+                        <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                    </a>
+                </div>
+
+                {% if noticias %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-fluid-gutter">
+                    {% for noticia in noticias %}
+                    <article class="card cursor-pointer gsap-reveal group" onclick="window.location.href='/noticias/'">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            {% if noticia.imagen_portada %}
+                            <img src="{{ noticia.imagen_portada.url }}" alt="{{ noticia.titulo }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            {% else %}
+                            <div class="w-full h-full bg-gradient-to-br from-brand-700 to-brand-900 flex items-center justify-center">
+                                <i data-lucide="newspaper" class="w-16 h-16 text-white/30"></i>
+                            </div>
+                            {% endif %}
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-1">
+                            <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-800 dark:group-hover:text-brand-400 transition-colors">{{ noticia.titulo }}</h3>
+                            <p class="text-base-textLight/70 dark:text-base-textDark/70 text-sm line-clamp-3 mb-6 flex-1">{{ noticia.contenido|truncatewords:20 }}</p>
+                            <div class="flex items-center justify-between mt-auto pt-4 border-t border-black/5 dark:border-white/5">
+                                <time class="text-xs font-bold uppercase tracking-widest text-brand-800/60 dark:text-brand-400/60">{{ noticia.fecha_publicacion|date:"d M Y" }}</time>
+                                <div class="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-800 dark:text-brand-400 group-hover:bg-brand-800 group-hover:text-white transition-colors">
+                                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <!-- Estado vacío: no hay noticias en la BD aún -->
+                <div class="text-center py-24 gsap-reveal">
+                    <div class="w-20 h-20 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="newspaper" class="w-10 h-10 text-brand-800/40 dark:text-brand-400/40"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 opacity-60">Aún no hay noticias</h3>
+                    <p class="opacity-40">Pronto encontrarás novedades de la comunidad aquí.</p>
+                    {% if user.is_authenticated and user.rol == 'administrador' %}
+                    <a href="/admin/app/noticia/add/" class="btn mt-6 bg-brand-800 text-white">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Publicar primera noticia
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-12 border-t border-black/5 dark:border-white/5 bg-white dark:bg-black/20">
+        <div class="w-full max-w-[1920px] mx-auto px-fluid-gutter flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <i data-lucide="atom" class="w-6 h-6 text-brand-800 dark:text-brand-500"></i>
+                <span class="font-black text-xl">ClubsHub</span>
+            </div>
+            <p class="text-sm text-base-textLight/60 dark:text-base-textDark/60 font-medium tracking-wide">
+                &copy; 2026 Universidad. Plataforma de Clubes.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        function homeApp() {
+            return {
+                currentHeroSlide: 0,
+                heroTimer: null,
+                heroSlides: [
+                    { title: "El Hub de Innovación Estudiantil", subtitle: "Conecta con mentes brillantes y desarrolla habilidades para el futuro.", badge: "NUEVA PLATAFORMA", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop" },
+                    { title: "Aprende de Expertos locales", subtitle: "Accede a cursos técnicos y talleres organizados por clubes especializados.", badge: "FORMACIÓN CONTINUA", image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop" },
+                    { title: "Lidera el Cambio", subtitle: "Únete a un club, propón iniciativas y deja tu huella en la comunidad.", badge: "LIDERAZGO", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" }
+                ],
+                initApp() {
+                    this.startHeroTimer();
+                    setTimeout(() => {
+                        lucide.createIcons();
+                        this.initAnimations();
+                    }, 50);
+                },
+                startHeroTimer() { this.heroTimer = setInterval(() => this.nextSlide(), 5000); },
+                resetHeroTimer() { clearInterval(this.heroTimer); this.startHeroTimer(); },
+                nextSlide() { this.currentHeroSlide = (this.currentHeroSlide + 1) % this.heroSlides.length; this.resetHeroTimer(); },
+                prevSlide() { this.currentHeroSlide = (this.currentHeroSlide - 1 + this.heroSlides.length) % this.heroSlides.length; this.resetHeroTimer(); },
+                initAnimations() {
+                    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                        gsap.set('.gsap-reveal', { opacity: 1, y: 0 }); return;
+                    }
+                    gsap.utils.toArray('.gsap-reveal').forEach((elem, i) => {
+                        ScrollTrigger.create({
+                            trigger: elem, start: "top 85%",
+                            animation: gsap.to(elem, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: i % 3 * 0.1 })
+                        });
+                    });
+                    const heroBg = document.querySelector('.hero-bg');
+                    if (heroBg) {
+                        gsap.to(heroBg, {
+                            yPercent: 30, ease: "none",
+                            scrollTrigger: { trigger: heroBg.parentElement, start: "top top", end: "bottom top", scrub: true }
+                        });
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
