@@ -233,12 +233,8 @@
                             image: "{% if slide.imagen_fondo %}{{ slide.imagen_fondo.url }}{% else %}https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop{% endif %}",
                             url: "{% if slide.noticia_vinculada %}{% url 'noticias' %}{% elif slide.curso_vinculado %}{% url 'curso_detalle' slide.curso_vinculado.pk %}{% elif slide.enlace_url %}{{ slide.enlace_url }}{% else %}#{% endif %}",
                             btnText: "{{ slide.texto_boton|escapejs }}"
-                        },
+                        }{% if not forloop.last %},{% endif %}
                         {% endfor %}
-                    {% else %}
-                    { title: "El Hub de Innovación Estudiantil", subtitle: "Conecta con mentes brillantes y desarrolla habilidades para el futuro.", badge: "NUEVA PLATAFORMA", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop", url: "{% url 'cursos' %}", btnText: "Explorar Cursos" },
-                    { title: "Aprende de Expertos locales", subtitle: "Accede a cursos técnicos y talleres organizados por clubes especializados.", badge: "FORMACIÓN CONTINUA", image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop", url: "{% url 'noticias' %}", btnText: "Últimas Noticias" },
-                    { title: "Lidera el Cambio", subtitle: "Únete a un club, propón iniciativas y deja tu huella en la comunidad.", badge: "LIDERAZGO", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop", url: "#", btnText: "" }
                     {% endif %}
                 ],
                 initApp() {

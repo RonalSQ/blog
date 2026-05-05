@@ -34,3 +34,4 @@ skills-lock.json
 .idea/
 
 tests_s3.py/
+populate_carrusel.py/

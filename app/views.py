@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from functools import wraps
+from django.utils.html import strip_tags
 
 from .models import Noticia, Curso, Modulo, Inscripcion, Carrusel
 
@@ -57,6 +58,19 @@ def noticia_crear_view(request):
             if imagen:
                 noticia.imagen_portada = imagen
             noticia.save()
+            
+            if request.POST.get('agregar_carrusel'):
+                Carrusel.objects.update_or_create(
+                    noticia_vinculada=noticia,
+                    defaults={
+                        'titulo': noticia.titulo,
+                        'subtitulo': strip_tags(noticia.contenido)[:150] + "...",
+                        'imagen_fondo': noticia.imagen_portada if noticia.imagen_portada else None,
+                        'texto_boton': "Leer Noticia",
+                        'activo': True
+                    }
+                )
+                
             messages.success(request, f'Noticia «{titulo}» publicada exitosamente.')
             return redirect('noticias')
     return render(request, 'noticia_form.html')
@@ -74,6 +88,19 @@ def noticia_editar_view(request, pk):
             noticia.imagen_portada.delete(save=False)
             noticia.imagen_portada = None
         noticia.save()
+        
+        if request.POST.get('agregar_carrusel'):
+            Carrusel.objects.update_or_create(
+                noticia_vinculada=noticia,
+                defaults={
+                    'titulo': noticia.titulo,
+                    'subtitulo': strip_tags(noticia.contenido)[:150] + "...",
+                    'imagen_fondo': noticia.imagen_portada if noticia.imagen_portada else None,
+                    'texto_boton': "Leer Noticia",
+                    'activo': True
+                }
+            )
+            
         messages.success(request, 'Noticia actualizada correctamente.')
         return redirect('noticias')
     return render(request, 'noticia_form.html', {'noticia': noticia})
@@ -120,6 +147,19 @@ def curso_crear_view(request):
             if imagen:
                 curso.imagen_portada = imagen
             curso.save()
+            
+            if request.POST.get('agregar_carrusel'):
+                Carrusel.objects.update_or_create(
+                    curso_vinculado=curso,
+                    defaults={
+                        'titulo': curso.titulo,
+                        'subtitulo': strip_tags(curso.descripcion)[:150] + "...",
+                        'imagen_fondo': curso.imagen_portada if curso.imagen_portada else None,
+                        'texto_boton': "Explorar Curso",
+                        'activo': True
+                    }
+                )
+                
             messages.success(request, f'Curso «{titulo}» creado. Ahora puedes agregarle módulos.')
             return redirect('curso_detalle', pk=curso.pk)
     return render(request, 'curso_form.html')
@@ -137,6 +177,19 @@ def curso_editar_view(request, pk):
             curso.imagen_portada.delete(save=False)
             curso.imagen_portada = None
         curso.save()
+        
+        if request.POST.get('agregar_carrusel'):
+            Carrusel.objects.update_or_create(
+                curso_vinculado=curso,
+                defaults={
+                    'titulo': curso.titulo,
+                    'subtitulo': strip_tags(curso.descripcion)[:150] + "...",
+                    'imagen_fondo': curso.imagen_portada if curso.imagen_portada else None,
+                    'texto_boton': "Explorar Curso",
+                    'activo': True
+                }
+            )
+            
         messages.success(request, 'Curso actualizado correctamente.')
         return redirect('curso_detalle', pk=pk)
     return render(request, 'curso_form.html', {'curso': curso})
