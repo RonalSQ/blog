@@ -43,9 +43,15 @@ class ModuloInline(TabularInline):
 # ─────────────────────────────────────────────
 @admin.register(Curso)
 class CursoAdmin(ModelAdmin):
-    list_display = ('titulo', 'total_modulos', 'total_inscritos', 'fecha_creacion')
+    list_display = ('titulo', 'total_modulos', 'total_inscritos', 'fecha_creacion', 'autor')
     search_fields = ('titulo', 'descripcion')
     inlines = [ModuloInline]
+    readonly_fields = ('autor',)
+
+    def save_model(self, request, obj, form, change):
+        if getattr(obj, 'autor', None) is None:
+            obj.autor = request.user
+        super().save_model(request, obj, form, change)
 
     @admin.display(description='Módulos')
     def total_modulos(self, obj):
@@ -61,10 +67,16 @@ class CursoAdmin(ModelAdmin):
 # ─────────────────────────────────────────────
 @admin.register(Noticia)
 class NoticiaAdmin(ModelAdmin):
-    list_display = ('titulo', 'fecha_publicacion')
+    list_display = ('titulo', 'fecha_publicacion', 'autor')
     search_fields = ('titulo', 'contenido')
     list_filter = ('fecha_publicacion',)
     date_hierarchy = 'fecha_publicacion'
+    readonly_fields = ('autor',)
+
+    def save_model(self, request, obj, form, change):
+        if getattr(obj, 'autor', None) is None:
+            obj.autor = request.user
+        super().save_model(request, obj, form, change)
 
 
 # ─────────────────────────────────────────────

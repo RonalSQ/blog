@@ -94,6 +94,10 @@
                         <i data-lucide="layers" class="w-4 h-4"></i>
                         {{ modulos.count }} módulo{{ modulos.count|pluralize }}
                     </div>
+                    <div class="flex items-center gap-2 bg-brand-50 dark:bg-brand-900/20 px-4 py-2 rounded-full text-sm font-bold text-brand-800 dark:text-brand-400">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i>
+                        Por: {{ curso.autor.get_full_name|default:curso.autor.username|default:"Administración" }}
+                    </div>
                     {% if inscripcion %}
                     <div class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold
                         {% if inscripcion.aprobado_por_admin %}bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400{% else %}bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400{% endif %}">
@@ -309,7 +313,7 @@
             gsap.utils.toArray('.gsap-reveal').forEach((el, i) => {
                 gsap.to(el, {
                     opacity: 1, y: 0, duration: 0.7,
-                    ease: 'power3.out', delay: i * 0.08,
+                    ease: 'power3.out', delay: (i % 3) * 0.2,
                     scrollTrigger: { trigger: el, start: 'top 88%' }
                 });
             });

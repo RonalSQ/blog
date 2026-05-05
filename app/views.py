@@ -52,7 +52,7 @@ def noticia_crear_view(request):
         if not titulo or not contenido:
             messages.error(request, 'El título y el contenido son obligatorios.')
         else:
-            noticia = Noticia(titulo=titulo, contenido=contenido)
+            noticia = Noticia(titulo=titulo, contenido=contenido, autor=request.user)
             if imagen:
                 noticia.imagen_portada = imagen
             noticia.save()
@@ -115,7 +115,7 @@ def curso_crear_view(request):
         if not titulo or not descripcion:
             messages.error(request, 'El título y la descripción son obligatorios.')
         else:
-            curso = Curso(titulo=titulo, descripcion=descripcion)
+            curso = Curso(titulo=titulo, descripcion=descripcion, autor=request.user)
             if imagen:
                 curso.imagen_portada = imagen
             curso.save()

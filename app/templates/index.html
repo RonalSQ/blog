@@ -160,10 +160,28 @@
                         <div class="p-6 flex flex-col flex-1">
                             <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-800 dark:group-hover:text-brand-400 transition-colors">{{ noticia.titulo }}</h3>
                             <p class="text-base-textLight/70 dark:text-base-textDark/70 text-sm line-clamp-3 mb-6 flex-1">{{ noticia.contenido|truncatewords:20 }}</p>
-                            <div class="flex items-center justify-between mt-auto pt-4 border-t border-black/5 dark:border-white/5">
-                                <time class="text-xs font-bold uppercase tracking-widest text-brand-800/60 dark:text-brand-400/60">{{ noticia.fecha_publicacion|date:"d M Y" }}</time>
-                                <div class="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-800 dark:text-brand-400 group-hover:bg-brand-800 group-hover:text-white transition-colors">
-                                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            <div class="flex flex-col gap-2 mt-auto pt-4 border-t border-black/5 dark:border-white/5">
+                                <div class="flex items-center justify-between">
+                                    <time class="text-xs font-bold uppercase tracking-widest text-brand-800/60 dark:text-brand-400/60">{{ noticia.fecha_publicacion|date:"d M Y" }}</time>
+                                    <div class="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-800 dark:text-brand-400 group-hover:bg-brand-800 group-hover:text-white transition-colors">
+                                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2 text-sm text-base-textLight/60 dark:text-base-textDark/60 mb-6 flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="users" class="w-4 h-4"></i>
+                                            <span>{{ noticia.inscripciones.count }} Inscritos</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="book-open" class="w-4 h-4"></i>
+                                            <span>{{ noticia.modulos.count }} Módulos</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <i data-lucide="pen-tool" class="w-4 h-4 text-brand-500"></i>
+                                        <span class="font-medium text-base-textLight/80 dark:text-base-textDark/80">Por: {{ noticia.autor.get_full_name|default:noticia.autor.username|default:"Administración" }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -229,7 +247,7 @@
                     gsap.utils.toArray('.gsap-reveal').forEach((elem, i) => {
                         ScrollTrigger.create({
                             trigger: elem, start: "top 85%",
-                            animation: gsap.to(elem, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: i % 3 * 0.1 })
+                            animation: gsap.to(elem, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: i % 3 * 0.2 })
                         });
                     });
                     const heroBg = document.querySelector('.hero-bg');

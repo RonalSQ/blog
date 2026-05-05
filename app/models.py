@@ -50,6 +50,14 @@ class Noticia(models.Model):
         auto_now_add=True,
         verbose_name='Fecha de Publicación',
     )
+    autor = models.ForeignKey(
+        'app.Usuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Autor',
+        related_name='noticias_publicadas'
+    )
 
     class Meta:
         verbose_name = 'Noticia'
@@ -73,6 +81,14 @@ class Curso(models.Model):
         verbose_name='Imagen de Portada',
     )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    autor = models.ForeignKey(
+        'app.Usuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Creador',
+        related_name='cursos_creados'
+    )
 
     class Meta:
         verbose_name = 'Curso'
