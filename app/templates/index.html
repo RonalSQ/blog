@@ -157,7 +157,7 @@
                         </div>
                         <div class="p-6 flex flex-col flex-1">
                             <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-800 dark:group-hover:text-brand-400 transition-colors">{{ noticia.titulo }}</h3>
-                            <p class="text-base-textLight/70 dark:text-base-textDark/70 text-sm line-clamp-3 mb-6 flex-1">{{ noticia.contenido|truncatewords:20 }}</p>
+                            <p class="text-base-textLight/70 dark:text-base-textDark/70 text-sm line-clamp-3 mb-6 flex-1">{{ noticia.contenido|striptags|truncatewords:20 }}</p>
                             <div class="flex flex-col gap-2 mt-auto pt-4 border-t border-black/5 dark:border-white/5">
                                 <div class="flex items-center justify-between">
                                     <time class="text-xs font-bold uppercase tracking-widest text-brand-800/60 dark:text-brand-400/60">{{ noticia.fecha_publicacion|date:"d M Y" }}</time>
@@ -166,16 +166,6 @@
                                     </div>
                                 </div>
                                 <div class="flex flex-col gap-2 text-sm text-base-textLight/60 dark:text-base-textDark/60 mb-6 flex-1">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <i data-lucide="users" class="w-4 h-4"></i>
-                                            <span>{{ noticia.inscripciones.count }} Inscritos</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <i data-lucide="book-open" class="w-4 h-4"></i>
-                                            <span>{{ noticia.modulos.count }} Módulos</span>
-                                        </div>
-                                    </div>
                                     <div class="flex items-center gap-2 mt-1">
                                         <i data-lucide="pen-tool" class="w-4 h-4 text-brand-500"></i>
                                         <span class="font-medium text-base-textLight/80 dark:text-base-textDark/80">Por: {{ noticia.autor.get_full_name|default:noticia.autor.username|default:"Administración" }}</span>
@@ -229,8 +219,8 @@
                             title: "{{ slide.titulo|escapejs }}", 
                             subtitle: "{{ slide.subtitulo|escapejs }}", 
                             badge: "{% if slide.etiqueta %}{{ slide.etiqueta|escapejs }}{% endif %}", 
-                            image: "{% if slide.imagen_fondo %}{{ slide.imagen_fondo.url }}{% else %}https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop{% endif %}",
-                            url: "{% if slide.noticia_vinculada %}{% url 'noticias' %}{% elif slide.curso_vinculado %}{% url 'curso_detalle' slide.curso_vinculado.pk %}{% elif slide.enlace_url %}{{ slide.enlace_url }}{% else %}#{% endif %}",
+                            image: "{% if slide.imagen_fondo %}{{ slide.imagen_fondo.url|safe }}{% else %}https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop{% endif %}",
+                            url: "{% if slide.noticia_vinculada %}{% url 'noticias' %}{% elif slide.curso_vinculado %}{% url 'curso_detalle' slide.curso_vinculado.pk %}{% elif slide.enlace_url %}{{ slide.enlace_url|safe }}{% else %}#{% endif %}",
                             btnText: "{{ slide.texto_boton|escapejs }}"
                         }{% if not forloop.last %},{% endif %}
                         {% endfor %}
