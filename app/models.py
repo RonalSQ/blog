@@ -176,3 +176,31 @@ class Inscripcion(models.Model):
     def __str__(self):
         estado = '✔ Aprobada' if self.aprobado_por_admin else '⏳ Pendiente'
         return f'{self.usuario} → {self.curso} [{estado}]'
+
+
+# ─────────────────────────────────────────────
+# CARRUSEL PRINCIPAL
+# ─────────────────────────────────────────────
+class Carrusel(models.Model):
+    titulo = models.CharField(max_length=200, verbose_name='Título')
+    subtitulo = models.TextField(verbose_name='Subtítulo')
+    etiqueta = models.CharField(max_length=50, blank=True, null=True, verbose_name='Etiqueta (Ej: NUEVA PLATAFORMA)')
+    imagen_fondo = models.ImageField(upload_to='carrusel/', verbose_name='Imagen de Fondo')
+    
+    # Enlaces
+    enlace_url = models.URLField(blank=True, null=True, verbose_name='Enlace Externo (Opcional)')
+    noticia_vinculada = models.ForeignKey(Noticia, on_delete=models.SET_NULL, blank=True, null=True, related_name='slides_carrusel', verbose_name='Noticia Vinculada')
+    curso_vinculado = models.ForeignKey(Curso, on_delete=models.SET_NULL, blank=True, null=True, related_name='slides_carrusel', verbose_name='Curso Vinculado')
+    
+    texto_boton = models.CharField(max_length=50, default='Ver Detalles', verbose_name='Texto del Botón')
+    
+    activo = models.BooleanField(default=True, verbose_name='Activo (Mostrar en inicio)')
+    orden = models.PositiveIntegerField(default=0, verbose_name='Orden')
+
+    class Meta:
+        verbose_name = 'Diapositiva del Carrusel'
+        verbose_name_plural = 'Carrusel Principal'
+        ordering = ['orden', '-id']
+
+    def __str__(self):
+        return self.titulo

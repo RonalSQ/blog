@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
-from .models import Usuario, Noticia, Curso, Modulo, Inscripcion
+from .models import Usuario, Noticia, Curso, Modulo, Inscripcion, Carrusel
 
 
 # ─────────────────────────────────────────────
@@ -90,3 +90,28 @@ class InscripcionAdmin(ModelAdmin):
     list_editable = ('aprobado_por_admin',)  # Aprobar desde la lista sin entrar al detalle
     date_hierarchy = 'fecha_inscripcion'
     ordering = ('-fecha_inscripcion',)
+
+
+# ─────────────────────────────────────────────
+# CARRUSEL
+# ─────────────────────────────────────────────
+@admin.register(Carrusel)
+class CarruselAdmin(ModelAdmin):
+    list_display = ('titulo', 'etiqueta', 'activo', 'orden')
+    list_filter = ('activo',)
+    search_fields = ('titulo', 'subtitulo', 'etiqueta')
+    list_editable = ('activo', 'orden')
+    ordering = ('orden', '-id')
+    
+    fieldsets = (
+        ('Contenido Principal', {
+            'fields': ('titulo', 'subtitulo', 'etiqueta', 'imagen_fondo')
+        }),
+        ('Enlaces (Selecciona solo uno)', {
+            'fields': ('texto_boton', 'noticia_vinculada', 'curso_vinculado', 'enlace_url'),
+            'description': 'El botón redirigirá a la noticia, al curso, o al enlace externo en ese orden de prioridad.'
+        }),
+        ('Configuración', {
+            'fields': ('activo', 'orden')
+        }),
+    )

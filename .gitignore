@@ -32,3 +32,5 @@ skills-lock.json
 # IDEs
 .vscode/
 .idea/
+
+tests_s3.py/

@@ -100,9 +100,8 @@
                             <span class="inline-block py-1 px-3 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm" x-text="slide.badge"></span>
                             <h1 class="text-fluid-4xl font-black text-white leading-[1.1] mb-6 drop-shadow-lg" x-text="slide.title"></h1>
                             <p class="text-fluid-lg text-white/80 font-medium mb-10 max-w-2xl drop-shadow-md" x-text="slide.subtitle"></p>
-                            <div class="flex flex-wrap gap-4">
-                                <a href="{% url 'cursos' %}" class="btn bg-white text-black hover:bg-brand-50 hover:scale-105 px-8">Explorar Cursos</a>
-                                <a href="{% url 'noticias' %}" class="btn border border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8">Últimas Noticias</a>
+                            <div class="flex flex-wrap gap-4" x-show="slide.url !== '#'">
+                                <a :href="slide.url" class="btn bg-white text-black hover:bg-brand-50 hover:scale-105 px-8" x-text="slide.btnText"></a>
                             </div>
                         </div>
                     </template>
@@ -225,9 +224,22 @@
                 currentHeroSlide: 0,
                 heroTimer: null,
                 heroSlides: [
-                    { title: "El Hub de Innovación Estudiantil", subtitle: "Conecta con mentes brillantes y desarrolla habilidades para el futuro.", badge: "NUEVA PLATAFORMA", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop" },
-                    { title: "Aprende de Expertos locales", subtitle: "Accede a cursos técnicos y talleres organizados por clubes especializados.", badge: "FORMACIÓN CONTINUA", image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop" },
-                    { title: "Lidera el Cambio", subtitle: "Únete a un club, propón iniciativas y deja tu huella en la comunidad.", badge: "LIDERAZGO", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" }
+                    {% if carruseles %}
+                        {% for slide in carruseles %}
+                        { 
+                            title: "{{ slide.titulo|escapejs }}", 
+                            subtitle: "{{ slide.subtitulo|escapejs }}", 
+                            badge: "{% if slide.etiqueta %}{{ slide.etiqueta|escapejs }}{% endif %}", 
+                            image: "{% if slide.imagen_fondo %}{{ slide.imagen_fondo.url }}{% else %}https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop{% endif %}",
+                            url: "{% if slide.noticia_vinculada %}{% url 'noticias' %}{% elif slide.curso_vinculado %}{% url 'curso_detalle' slide.curso_vinculado.pk %}{% elif slide.enlace_url %}{{ slide.enlace_url }}{% else %}#{% endif %}",
+                            btnText: "{{ slide.texto_boton|escapejs }}"
+                        },
+                        {% endfor %}
+                    {% else %}
+                    { title: "El Hub de Innovación Estudiantil", subtitle: "Conecta con mentes brillantes y desarrolla habilidades para el futuro.", badge: "NUEVA PLATAFORMA", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop", url: "{% url 'cursos' %}", btnText: "Explorar Cursos" },
+                    { title: "Aprende de Expertos locales", subtitle: "Accede a cursos técnicos y talleres organizados por clubes especializados.", badge: "FORMACIÓN CONTINUA", image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop", url: "{% url 'noticias' %}", btnText: "Últimas Noticias" },
+                    { title: "Lidera el Cambio", subtitle: "Únete a un club, propón iniciativas y deja tu huella en la comunidad.", badge: "LIDERAZGO", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop", url: "#", btnText: "" }
+                    {% endif %}
                 ],
                 initApp() {
                     this.startHeroTimer();

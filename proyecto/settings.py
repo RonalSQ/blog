@@ -109,8 +109,9 @@ if os.environ.get('SUPABASE_S3_ACCESS_KEY'):
     AWS_SECRET_ACCESS_KEY = os.environ.get('SUPABASE_S3_SECRET_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('SUPABASE_STORAGE_BUCKET_NAME')
     
-    AWS_S3_REGION_NAME = 'us-east-1' # Normalmente us-east-1 o la de tu proyecto supabase
+    AWS_S3_REGION_NAME = 'us-west-2' # Región del proyecto (ej: de la bd aws-1-us-west-2)
     AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_S3_ADDRESSING_STYLE = 'path'
     AWS_S3_FILE_OVERWRITE = True
     AWS_DEFAULT_ACL = None
     

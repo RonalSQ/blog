@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from functools import wraps
 
-from .models import Noticia, Curso, Modulo, Inscripcion
+from .models import Noticia, Curso, Modulo, Inscripcion, Carrusel
 
 
 # ─────────────────────────────────────────────
@@ -30,6 +30,7 @@ def home_view(request):
     context = {
         'noticias': Noticia.objects.all()[:3],
         'cursos': Curso.objects.all()[:4],
+        'carruseles': Carrusel.objects.filter(activo=True)
     }
     return render(request, 'index.html', context)
 
