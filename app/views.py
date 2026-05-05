@@ -65,7 +65,7 @@ def noticia_crear_view(request):
                     defaults={
                         'titulo': noticia.titulo,
                         'subtitulo': strip_tags(noticia.contenido)[:150] + "...",
-                        'imagen_fondo': noticia.imagen_portada if noticia.imagen_portada else None,
+                        'imagen_fondo': noticia.imagen_portada.name if noticia.imagen_portada else None,
                         'texto_boton': "Leer Noticia",
                         'activo': True
                     }
@@ -95,7 +95,7 @@ def noticia_editar_view(request, pk):
                 defaults={
                     'titulo': noticia.titulo,
                     'subtitulo': strip_tags(noticia.contenido)[:150] + "...",
-                    'imagen_fondo': noticia.imagen_portada if noticia.imagen_portada else None,
+                    'imagen_fondo': noticia.imagen_portada.name if noticia.imagen_portada else None,
                     'texto_boton': "Leer Noticia",
                     'activo': True
                 }
@@ -154,7 +154,7 @@ def curso_crear_view(request):
                     defaults={
                         'titulo': curso.titulo,
                         'subtitulo': strip_tags(curso.descripcion)[:150] + "...",
-                        'imagen_fondo': curso.imagen_portada if curso.imagen_portada else None,
+                        'imagen_fondo': curso.imagen_portada.name if curso.imagen_portada else None,
                         'texto_boton': "Explorar Curso",
                         'activo': True
                     }
@@ -184,7 +184,7 @@ def curso_editar_view(request, pk):
                 defaults={
                     'titulo': curso.titulo,
                     'subtitulo': strip_tags(curso.descripcion)[:150] + "...",
-                    'imagen_fondo': curso.imagen_portada if curso.imagen_portada else None,
+                    'imagen_fondo': curso.imagen_portada.name if curso.imagen_portada else None,
                     'texto_boton': "Explorar Curso",
                     'activo': True
                 }
@@ -213,7 +213,14 @@ def curso_detalle_view(request, pk):
     """Detalle de un curso con sus módulos (requiere login)."""
     curso = get_object_or_404(Curso, pk=pk)
     inscripcion = Inscripcion.objects.filter(usuario=request.user, curso=curso).first()
-    if request.method == 'POST' and not inscripcion:
+    
+    tiene_acceso = False
+    if request.user.is_superuser or request.user.rol == 'administrador':
+        tiene_acceso = True
+    elif inscripcion and inscripcion.aprobado_por_admin:
+        tiene_acceso = True
+
+    if request.method == 'POST' and not inscripcion and not tiene_acceso:
         Inscripcion.objects.create(usuario=request.user, curso=curso)
         messages.success(request, '¡Te has inscrito! Tu inscripción está pendiente de aprobación.')
         return redirect('curso_detalle', pk=pk)
@@ -221,6 +228,7 @@ def curso_detalle_view(request, pk):
         'curso': curso,
         'modulos': curso.modulos.all(),
         'inscripcion': inscripcion,
+        'tiene_acceso': tiene_acceso,
     }
     return render(request, 'curso_detalle.html', context)
 
