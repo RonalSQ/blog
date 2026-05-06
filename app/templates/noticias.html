@@ -79,7 +79,7 @@
         {% if noticias %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-fluid-gutter">
             {% for noticia in noticias %}
-            <a href="{% url 'noticia_detalle' noticia.pk %}" class="card cursor-pointer gsap-reveal group flex flex-col">
+            <article class="card cursor-pointer gsap-reveal group flex flex-col" onclick="window.location.href='{% url 'noticia_detalle' noticia.pk %}'">
                 <div class="aspect-[4/3] overflow-hidden relative">
                     {% if noticia.imagen_portada %}
                     <img src="{{ noticia.imagen_portada.url }}" alt="{{ noticia.titulo }}"
@@ -93,7 +93,7 @@
 
                     {% if user.is_authenticated and user.rol == 'administrador' or user.is_superuser %}
                     <a href="{% url 'noticia_editar' noticia.pk %}"
-                       @click.stop
+                       onclick="event.stopPropagation()"
                        class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 dark:bg-black/80 backdrop-blur-md flex items-center justify-center text-brand-800 hover:bg-brand-800 hover:text-white dark:hover:bg-brand-400 dark:hover:text-black transition-colors shadow-sm z-10"
                        title="Editar noticia">
                         <i data-lucide="edit-2" class="w-4 h-4"></i>
@@ -116,7 +116,7 @@
                         </div>
                     </div>
                 </div>
-            </a>
+            </article>
             {% endfor %}
         </div>
         {% else %}
