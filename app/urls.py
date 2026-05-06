@@ -5,6 +5,7 @@ urlpatterns = [
     # Públicas
     path('', views.home_view, name='home'),
     path('noticias/', views.noticias_view, name='noticias'),
+    path('noticias/<int:pk>/', views.noticia_detalle_view, name='noticia_detalle'),
     path('cursos/', views.cursos_view, name='cursos'),
     path('cursos/<int:pk>/', views.curso_detalle_view, name='curso_detalle'),
 

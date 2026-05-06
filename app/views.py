@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import F
 from functools import wraps
 from django.utils.html import strip_tags
 
@@ -40,9 +41,29 @@ def home_view(request):
 # NOTICIAS
 # ─────────────────────────────────────────────
 def noticias_view(request):
-    """Página con todas las noticias."""
-    context = {'noticias': Noticia.objects.all()}
+    """Página con todas las noticias, con filtro de ordenamiento."""
+    orden = request.GET.get('orden', 'recientes')
+    if orden == 'vistas':
+        noticias = Noticia.objects.all().order_by('-vistas', '-fecha_publicacion')
+    else:
+        noticias = Noticia.objects.all().order_by('-fecha_publicacion')
+    context = {
+        'noticias': noticias,
+        'orden_actual': orden,
+    }
     return render(request, 'noticias.html', context)
+
+
+def noticia_detalle_view(request, pk):
+    """Página de detalle individual de una noticia."""
+    noticia = get_object_or_404(Noticia, pk=pk)
+    # Incrementar vistas
+    Noticia.objects.filter(pk=pk).update(vistas=models.F('vistas') + 1)
+    noticia.refresh_from_db()
+    context = {
+        'noticia': noticia,
+    }
+    return render(request, 'noticia_detalle.html', context)
 
 
 @admin_required
@@ -79,6 +100,7 @@ def noticia_crear_view(request):
 @admin_required
 def noticia_editar_view(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
+    en_carrusel = Carrusel.objects.filter(noticia_vinculada=noticia).exists()
     if request.method == 'POST':
         noticia.titulo = request.POST.get('titulo', '').strip()
         noticia.contenido = request.POST.get('contenido', '').strip()
@@ -100,10 +122,13 @@ def noticia_editar_view(request, pk):
                     'activo': True
                 }
             )
+        else:
+            # Si desmarcó la casilla, eliminar del carrusel
+            Carrusel.objects.filter(noticia_vinculada=noticia).delete()
             
         messages.success(request, 'Noticia actualizada correctamente.')
         return redirect('noticias')
-    return render(request, 'noticia_form.html', {'noticia': noticia})
+    return render(request, 'noticia_form.html', {'noticia': noticia, 'en_carrusel': en_carrusel})
 
 
 @admin_required
@@ -168,6 +193,7 @@ def curso_crear_view(request):
 @admin_required
 def curso_editar_view(request, pk):
     curso = get_object_or_404(Curso, pk=pk)
+    en_carrusel = Carrusel.objects.filter(curso_vinculado=curso).exists()
     if request.method == 'POST':
         curso.titulo = request.POST.get('titulo', '').strip()
         curso.descripcion = request.POST.get('descripcion', '').strip()
@@ -189,10 +215,13 @@ def curso_editar_view(request, pk):
                     'activo': True
                 }
             )
+        else:
+            # Si desmarcó la casilla, eliminar del carrusel
+            Carrusel.objects.filter(curso_vinculado=curso).delete()
             
         messages.success(request, 'Curso actualizado correctamente.')
         return redirect('curso_detalle', pk=pk)
-    return render(request, 'curso_form.html', {'curso': curso})
+    return render(request, 'curso_form.html', {'curso': curso, 'en_carrusel': en_carrusel})
 
 
 @admin_required

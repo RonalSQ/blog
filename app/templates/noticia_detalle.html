@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ noticia.titulo }} — ClubsHub</title>
+    <meta name="description" content="{{ noticia.contenido|striptags|truncatewords:25 }}">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Satoshi', 'sans-serif'] },
+                    colors: {
+                        brand: { 50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#01696f',900:'#134e4a',950:'#042f2e' },
+                        base: { light:'#f7f6f2',dark:'#121212',cardLight:'#ffffff',cardDark:'#1e1e1e',textLight:'#28251d',textDark:'#e4e4e7' }
+                    },
+                    spacing: { 'fluid-gutter':'clamp(1rem, 3vw, 3rem)' }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-base-light text-base-textLight font-sans antialiased transition-colors duration-300; }
+            .dark body { @apply bg-base-dark text-base-textDark; }
+        }
+        @layer components {
+            .btn-ghost { @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-black/10 dark:border-white/10 font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm; }
+        }
+    </style>
+</head>
+<body x-data class="flex flex-col min-h-screen pt-20">
+
+    {% include 'nav.html' %}
+
+    <main class="flex-1 w-full max-w-4xl mx-auto px-fluid-gutter pt-8 pb-16">
+        
+        <!-- Botón volver -->
+        <a href="{% url 'noticias' %}" class="btn-ghost mb-8 w-fit text-base-textLight/70 dark:text-base-textDark/70 hover:text-brand-800 dark:hover:text-brand-400">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a Noticias
+        </a>
+
+        <!-- Encabezado de la noticia -->
+        <header class="mb-10 text-center">
+            <time class="text-xs font-bold uppercase tracking-widest text-brand-800 dark:text-brand-400 mb-4 block">
+                {{ noticia.fecha_publicacion|date:"d de F, Y" }}
+            </time>
+            <h1 class="text-3xl md:text-5xl font-black leading-tight mb-6">{{ noticia.titulo }}</h1>
+            
+            <div class="flex items-center justify-center gap-4 text-sm text-base-textLight/60 dark:text-base-textDark/60 font-medium">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span>{{ noticia.autor.get_full_name|default:noticia.autor.username|default:"Administración" }}</span>
+                </div>
+                <div class="w-1 h-1 rounded-full bg-black/20 dark:bg-white/20"></div>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                    <span>{{ noticia.vistas }} vistas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Imagen de Portada -->
+        {% if noticia.imagen_portada %}
+        <figure class="w-full aspect-[21/9] md:aspect-[21/9] rounded-3xl overflow-hidden mb-12 shadow-2xl shadow-black/10 dark:shadow-black/40 border border-black/5 dark:border-white/5">
+            <img src="{{ noticia.imagen_portada.url }}" alt="Portada de {{ noticia.titulo }}" class="w-full h-full object-cover">
+        </figure>
+        {% endif %}
+
+        <!-- Contenido -->
+        <article class="prose prose-lg md:prose-xl dark:prose-invert max-w-none mx-auto text-base-textLight/90 dark:text-base-textDark/90
+                        prose-headings:font-black prose-a:text-brand-600 dark:prose-a:text-brand-400 hover:prose-a:text-brand-800 dark:hover:prose-a:text-brand-300 prose-a:transition-colors
+                        prose-img:rounded-2xl">
+            {{ noticia.contenido|safe }}
+        </article>
+        
+        <!-- Pie de artículo -->
+        <div class="mt-16 pt-8 border-t border-black/10 dark:border-white/10 flex justify-between items-center">
+            <p class="text-sm font-bold text-base-textLight/50 dark:text-base-textDark/50">FIN DEL ARTÍCULO</p>
+            {% if user.is_authenticated and user.rol == 'administrador' or user.is_superuser %}
+            <a href="{% url 'noticia_editar' noticia.pk %}" class="btn-ghost text-brand-800 border-brand-800/20 hover:bg-brand-50 dark:text-brand-400 dark:border-brand-400/20 dark:hover:bg-brand-900/20">
+                <i data-lucide="edit-2" class="w-4 h-4"></i> Editar esta noticia
+            </a>
+            {% endif %}
+        </div>
+        
+    </main>
+
+    <footer class="py-10 border-t border-black/5 dark:border-white/5 bg-white dark:bg-black/20 mt-auto">
+        <div class="max-w-4xl mx-auto px-fluid-gutter flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i data-lucide="atom" class="w-5 h-5 text-brand-800 dark:text-brand-500"></i>
+                <span class="font-black">ClubsHub</span>
+            </div>
+            <p class="text-sm text-base-textLight/50 dark:text-white/40">&copy; 2026 Universidad</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

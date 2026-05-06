@@ -1,5 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import pre_save, post_delete
+from django.dispatch import receiver
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────
@@ -46,6 +51,7 @@ class Noticia(models.Model):
         verbose_name='Imagen de Portada',
     )
     contenido = models.TextField(verbose_name='Contenido')
+    vistas = models.PositiveIntegerField(default=0, verbose_name='Vistas')
     fecha_publicacion = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Fecha de Publicación',
@@ -204,3 +210,53 @@ class Carrusel(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+# ─────────────────────────────────────────────
+# SEÑALES: Limpieza automática de archivos
+# ─────────────────────────────────────────────
+def _delete_file_if_exists(file_field):
+    """Elimina un archivo del storage (local o S3) si existe."""
+    if file_field and file_field.name:
+        try:
+            file_field.storage.delete(file_field.name)
+            logger.info(f"Archivo eliminado del storage: {file_field.name}")
+        except Exception as e:
+            logger.warning(f"No se pudo eliminar {file_field.name}: {e}")
+
+
+# Modelos con campos de archivo que necesitan limpieza
+_FILE_FIELD_MODELS = {
+    Noticia: ['imagen_portada'],
+    Curso: ['imagen_portada'],
+    Modulo: ['archivo_adjunto'],
+    Carrusel: ['imagen_fondo'],
+}
+
+
+@receiver(pre_save)
+def cleanup_old_file_on_change(sender, instance, **kwargs):
+    """Antes de guardar, si cambió un archivo, elimina el anterior."""
+    if sender not in _FILE_FIELD_MODELS:
+        return
+    if not instance.pk:
+        return  # Es una creación nueva, no hay archivo viejo
+    try:
+        old_instance = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        return
+    for field_name in _FILE_FIELD_MODELS[sender]:
+        old_file = getattr(old_instance, field_name)
+        new_file = getattr(instance, field_name)
+        if old_file and old_file.name and (not new_file or old_file.name != new_file.name):
+            _delete_file_if_exists(old_file)
+
+
+@receiver(post_delete)
+def cleanup_files_on_delete(sender, instance, **kwargs):
+    """Después de borrar un objeto, elimina sus archivos del storage."""
+    if sender not in _FILE_FIELD_MODELS:
+        return
+    for field_name in _FILE_FIELD_MODELS[sender]:
+        file_field = getattr(instance, field_name, None)
+        _delete_file_if_exists(file_field)
