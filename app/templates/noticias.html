@@ -79,7 +79,7 @@
         {% if noticias %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-fluid-gutter">
             {% for noticia in noticias %}
-            <a href="{% url 'noticia_detalle' noticia.pk %}" class="card cursor-pointer gsap-reveal group flex flex-col block">
+            <a href="{% url 'noticia_detalle' noticia.pk %}" class="card cursor-pointer gsap-reveal group flex flex-col">
                 <div class="aspect-[4/3] overflow-hidden relative">
                     {% if noticia.imagen_portada %}
                     <img src="{{ noticia.imagen_portada.url }}" alt="{{ noticia.titulo }}"

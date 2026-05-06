@@ -58,7 +58,7 @@ def noticia_detalle_view(request, pk):
     """Página de detalle individual de una noticia."""
     noticia = get_object_or_404(Noticia, pk=pk)
     # Incrementar vistas
-    Noticia.objects.filter(pk=pk).update(vistas=models.F('vistas') + 1)
+    Noticia.objects.filter(pk=pk).update(vistas=F('vistas') + 1)
     noticia.refresh_from_db()
     context = {
         'noticia': noticia,
