@@ -333,7 +333,8 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect(request.POST.get('next', 'home'))
+            next_url = request.POST.get('next')
+            return redirect(next_url if next_url else 'home')
         else:
             messages.error(request, 'Credenciales incorrectas. Verifica tu usuario y contraseña.')
     return render(request, 'login.html')
