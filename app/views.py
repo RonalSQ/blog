@@ -158,7 +158,7 @@ def cursos_view(request):
         # Calcular progreso para cada curso inscrito
         for c in mis_cursos:
             total_modulos = c.modulos.count()
-            vistos = c.modulos.filter(progresomodulo__usuario=request.user, progresomodulo__completado=True).count()
+            vistos = c.modulos.filter(progresos__usuario=request.user).count()
             c.porcentaje_progreso = int((vistos / total_modulos * 100)) if total_modulos > 0 else 0
 
     context = {
