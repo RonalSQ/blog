@@ -213,6 +213,38 @@ class Carrusel(models.Model):
 
 
 # ─────────────────────────────────────────────
+# PROGRESO DE MÓDULO (Usuario ↔ Módulo)
+# ─────────────────────────────────────────────
+class ProgresoModulo(models.Model):
+    """Registra que un usuario ha completado (visto) un módulo específico."""
+    usuario = models.ForeignKey(
+        'app.Usuario',
+        on_delete=models.CASCADE,
+        related_name='progreso_modulos',
+        verbose_name='Usuario',
+    )
+    modulo = models.ForeignKey(
+        Modulo,
+        on_delete=models.CASCADE,
+        related_name='progresos',
+        verbose_name='Módulo',
+    )
+    fecha_completado = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Completado',
+    )
+
+    class Meta:
+        verbose_name = 'Progreso de Módulo'
+        verbose_name_plural = 'Progreso de Módulos'
+        unique_together = ('usuario', 'modulo')
+        ordering = ['fecha_completado']
+
+    def __str__(self):
+        return f'{self.usuario} completó «{self.modulo.titulo}»'
+
+
+# ─────────────────────────────────────────────
 # SEÑALES: Limpieza automática de archivos
 # ─────────────────────────────────────────────
 def _delete_file_if_exists(file_field):

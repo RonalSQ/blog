@@ -168,7 +168,7 @@
                                 <div class="flex flex-col gap-2 text-sm text-base-textLight/60 dark:text-base-textDark/60 mb-6 flex-1">
                                     <div class="flex items-center gap-2 mt-1">
                                         <i data-lucide="pen-tool" class="w-4 h-4 text-brand-500"></i>
-                                        <span class="font-medium text-base-textLight/80 dark:text-base-textDark/80">Por: {{ noticia.autor.get_full_name|default:noticia.autor.username|default:"Administración" }}</span>
+                                        <span class="font-medium text-base-textLight/80 dark:text-base-textDark/80">Por: {% if noticia.autor %}{{ noticia.autor.get_full_name|default:noticia.autor.username }}{% else %}Administración{% endif %}</span>
                                     </div>
                                 </div>
                             </div>

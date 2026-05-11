@@ -28,4 +28,7 @@ urlpatterns = [
     path('cursos/<int:curso_pk>/modulo/crear/', views.modulo_crear_view, name='modulo_crear'),
     path('cursos/<int:curso_pk>/modulo/<int:modulo_pk>/editar/', views.modulo_editar_view, name='modulo_editar'),
     path('cursos/<int:curso_pk>/modulo/<int:modulo_pk>/eliminar/', views.modulo_eliminar_view, name='modulo_eliminar'),
+    
+    # Progreso
+    path('cursos/<int:curso_pk>/modulo/<int:modulo_pk>/completar/', views.toggle_modulo_completado, name='toggle_modulo_completado'),
 ]

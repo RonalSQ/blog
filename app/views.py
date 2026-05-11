@@ -1,12 +1,15 @@
+# pyrefly: ignore [missing-import]
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import F
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from functools import wraps
 from django.utils.html import strip_tags
 
-from .models import Noticia, Curso, Modulo, Inscripcion, Carrusel
+from .models import Noticia, Curso, Modulo, Inscripcion, Carrusel, ProgresoModulo
 
 
 # ─────────────────────────────────────────────
@@ -253,13 +256,78 @@ def curso_detalle_view(request, pk):
         Inscripcion.objects.create(usuario=request.user, curso=curso)
         messages.success(request, '¡Te has inscrito! Tu inscripción está pendiente de aprobación.')
         return redirect('curso_detalle', pk=pk)
+
+    # Progreso del usuario en este curso
+    modulos = curso.modulos.all()
+    total_modulos = modulos.count()
+    modulos_completados_ids = set()
+    porcentaje = 0
+    if tiene_acceso and total_modulos > 0:
+        modulos_completados_ids = set(
+            ProgresoModulo.objects.filter(
+                usuario=request.user,
+                modulo__curso=curso
+            ).values_list('modulo_id', flat=True)
+        )
+        porcentaje = int((len(modulos_completados_ids) / total_modulos) * 100)
+
     context = {
         'curso': curso,
-        'modulos': curso.modulos.all(),
+        'modulos': modulos,
         'inscripcion': inscripcion,
         'tiene_acceso': tiene_acceso,
+        'modulos_completados_ids': modulos_completados_ids,
+        'total_modulos': total_modulos,
+        'modulos_completados_count': len(modulos_completados_ids),
+        'porcentaje': porcentaje,
     }
     return render(request, 'curso_detalle.html', context)
+
+
+@login_required(login_url='login')
+@require_POST
+def toggle_modulo_completado(request, curso_pk, modulo_pk):
+    """Marcar o desmarcar un módulo como completado (AJAX)."""
+    curso = get_object_or_404(Curso, pk=curso_pk)
+    modulo = get_object_or_404(Modulo, pk=modulo_pk, curso=curso)
+
+    # Verificar acceso
+    tiene_acceso = False
+    if request.user.is_superuser or request.user.rol == 'administrador':
+        tiene_acceso = True
+    else:
+        inscripcion = Inscripcion.objects.filter(
+            usuario=request.user, curso=curso, aprobado_por_admin=True
+        ).first()
+        if inscripcion:
+            tiene_acceso = True
+
+    if not tiene_acceso:
+        return JsonResponse({'error': 'Sin acceso'}, status=403)
+
+    # Toggle: si ya existe, eliminarlo; si no, crearlo
+    progreso, created = ProgresoModulo.objects.get_or_create(
+        usuario=request.user, modulo=modulo
+    )
+    if not created:
+        progreso.delete()
+        completado = False
+    else:
+        completado = True
+
+    # Recalcular porcentaje
+    total = curso.modulos.count()
+    completados = ProgresoModulo.objects.filter(
+        usuario=request.user, modulo__curso=curso
+    ).count()
+    porcentaje = int((completados / total) * 100) if total > 0 else 0
+
+    return JsonResponse({
+        'completado': completado,
+        'completados': completados,
+        'total': total,
+        'porcentaje': porcentaje,
+    })
 
 
 # ─────────────────────────────────────────────

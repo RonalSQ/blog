@@ -8,3 +8,4 @@ gunicorn
 django-storages
 boto3
 Pillow
+django-anymail[resend]

@@ -90,7 +90,9 @@
                         {% if curso.imagen_portada %}
                         <img src="{{ curso.imagen_portada.url }}" alt="{{ curso.titulo }}" class="w-full h-full object-cover">
                         {% else %}
-                        <div class="w-full h-full bg-gradient-to-br from-brand-700 to-brand-900"></div>
+                        <div class="w-full h-full bg-gradient-to-br from-brand-700 to-brand-900 flex items-center justify-center">
+                            <i data-lucide="book-open" class="w-12 h-12 text-white/30"></i>
+                        </div>
                         {% endif %}
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
                             <div class="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 group-hover:scale-110 transition-transform">
@@ -134,7 +136,7 @@
                     <p class="text-base-textLight/70 dark:text-base-textDark/70 text-sm line-clamp-2 mb-4 flex-1">{{ curso.descripcion|truncatewords:15 }}</p>
                     <div class="flex items-center gap-2 text-xs text-base-textLight/60 dark:text-base-textDark/60 mb-4">
                         <i data-lucide="pen-tool" class="w-3 h-3 text-brand-500"></i>
-                        <span>Creado por: <span class="font-medium">{{ curso.autor.get_full_name|default:curso.autor.username|default:"Administración" }}</span></span>
+                        <span>Creado por: <span class="font-medium">{% if curso.autor %}{{ curso.autor.get_full_name|default:curso.autor.username }}{% else %}Administración{% endif %}</span></span>
                     </div>
                     <div class="flex gap-2">
                         <a href="{% url 'curso_detalle' curso.pk %}"
