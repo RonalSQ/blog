@@ -151,10 +151,16 @@ def cursos_view(request):
     """Catálogo completo de cursos."""
     mis_cursos = []
     if request.user.is_authenticated:
-        mis_cursos = Curso.objects.filter(
+        mis_cursos = list(Curso.objects.filter(
             inscripciones__usuario=request.user,
             inscripciones__aprobado_por_admin=True,
-        )
+        ))
+        # Calcular progreso para cada curso inscrito
+        for c in mis_cursos:
+            total_modulos = c.modulos.count()
+            vistos = c.modulos.filter(progresomodulo__usuario=request.user, progresomodulo__completado=True).count()
+            c.porcentaje_progreso = int((vistos / total_modulos * 100)) if total_modulos > 0 else 0
+
     context = {
         'cursos': Curso.objects.all(),
         'mis_cursos': mis_cursos,

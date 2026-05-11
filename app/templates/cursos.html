@@ -102,7 +102,13 @@
                     </div>
                     <div class="p-6 bg-brand-800 text-white dark:bg-brand-950">
                         <h3 class="text-lg font-bold mb-2 line-clamp-1">{{ curso.titulo }}</h3>
-                        <p class="text-sm text-brand-200">{{ curso.modulos.count }} módulo{{ curso.modulos.count|pluralize }}</p>
+                        <div class="flex justify-between items-end mb-2">
+                            <p class="text-sm text-brand-200">{{ curso.modulos.count }} módulo{{ curso.modulos.count|pluralize }}</p>
+                            <span class="text-xs font-bold text-brand-300">{{ curso.porcentaje_progreso }}%</span>
+                        </div>
+                        <div class="w-full bg-brand-900/50 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-brand-300 h-1.5 rounded-full transition-all duration-500" style="width: {{ curso.porcentaje_progreso }}%"></div>
+                        </div>
                     </div>
                 </a>
                 {% endfor %}
