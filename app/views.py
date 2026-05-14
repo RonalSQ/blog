@@ -336,6 +336,7 @@ def toggle_modulo_completado(request, curso_pk, modulo_pk):
         )
         completado = True
 
+    total = curso.modulos.count()
     completados = 0
     progresos = ProgresoModulo.objects.filter(usuario=request.user, modulo__curso=curso)
     for p in progresos:
