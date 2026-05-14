@@ -266,15 +266,25 @@ def curso_detalle_view(request, pk):
     # Progreso del usuario en este curso
     modulos = curso.modulos.all()
     total_modulos = modulos.count()
+    
+    # We will pass a dictionary of {modulo_id: ProgresoModulo object} to the template 
+    # to easily access status, grade, and feedback for evaluable modules, 
+    # and to check completion for normal modules.
     modulos_completados_ids = set()
     porcentaje = 0
+
     if tiene_acceso and total_modulos > 0:
-        modulos_completados_ids = set(
-            ProgresoModulo.objects.filter(
-                usuario=request.user,
-                modulo__curso=curso
-            ).values_list('modulo_id', flat=True)
+        progresos = ProgresoModulo.objects.filter(
+            usuario=request.user,
+            modulo__curso=curso
         )
+        progresos_dict = {p.modulo_id: p for p in progresos}
+        
+        for modulo in modulos:
+            modulo.progreso_obj = progresos_dict.get(modulo.id)
+            if modulo.progreso_obj and modulo.progreso_obj.estado in [ProgresoModulo.Estado.COMPLETADO, ProgresoModulo.Estado.APROBADO, ProgresoModulo.Estado.CALIFICADO]:
+                modulos_completados_ids.add(modulo.id)
+        
         porcentaje = int((len(modulos_completados_ids) / total_modulos) * 100)
 
     context = {
@@ -282,6 +292,7 @@ def curso_detalle_view(request, pk):
         'modulos': modulos,
         'inscripcion': inscripcion,
         'tiene_acceso': tiene_acceso,
+        'progresos_dict': progresos_dict,
         'modulos_completados_ids': modulos_completados_ids,
         'total_modulos': total_modulos,
         'modulos_completados_count': len(modulos_completados_ids),
@@ -311,21 +322,26 @@ def toggle_modulo_completado(request, curso_pk, modulo_pk):
     if not tiene_acceso:
         return JsonResponse({'error': 'Sin acceso'}, status=403)
 
-    # Toggle: si ya existe, eliminarlo; si no, crearlo
-    progreso, created = ProgresoModulo.objects.get_or_create(
-        usuario=request.user, modulo=modulo
-    )
-    if not created:
+    if modulo.es_evaluable:
+        return JsonResponse({'error': 'No se puede marcar manualmente un módulo evaluable'}, status=400)
+
+    # Toggle: si ya existe, eliminarlo; si no, crearlo con estado COMPLETADO
+    progreso = ProgresoModulo.objects.filter(usuario=request.user, modulo=modulo).first()
+    if progreso:
         progreso.delete()
         completado = False
     else:
+        ProgresoModulo.objects.create(
+            usuario=request.user, modulo=modulo, estado=ProgresoModulo.Estado.COMPLETADO
+        )
         completado = True
 
-    # Recalcular porcentaje
-    total = curso.modulos.count()
-    completados = ProgresoModulo.objects.filter(
-        usuario=request.user, modulo__curso=curso
-    ).count()
+    completados = 0
+    progresos = ProgresoModulo.objects.filter(usuario=request.user, modulo__curso=curso)
+    for p in progresos:
+        if p.estado in [ProgresoModulo.Estado.COMPLETADO, ProgresoModulo.Estado.APROBADO, ProgresoModulo.Estado.CALIFICADO]:
+            completados += 1
+            
     porcentaje = int((completados / total) * 100) if total > 0 else 0
 
     return JsonResponse({
@@ -347,13 +363,14 @@ def modulo_crear_view(request, curso_pk):
         descripcion = request.POST.get('descripcion', '').strip()
         video_url = request.POST.get('video_url', '').strip()
         orden = request.POST.get('orden', 0)
+        es_evaluable = request.POST.get('es_evaluable') == 'on'
         archivo = request.FILES.get('archivo_adjunto')
         if not titulo:
             messages.error(request, 'El título del módulo es obligatorio.')
         else:
             modulo = Modulo(
                 curso=curso, titulo=titulo, descripcion=descripcion,
-                video_url=video_url or None, orden=orden,
+                video_url=video_url or None, orden=orden, es_evaluable=es_evaluable
             )
             if archivo:
                 modulo.archivo_adjunto = archivo
@@ -373,6 +390,7 @@ def modulo_editar_view(request, curso_pk, modulo_pk):
         modulo.descripcion = request.POST.get('descripcion', '').strip()
         modulo.video_url = request.POST.get('video_url', '').strip() or None
         modulo.orden = request.POST.get('orden', modulo.orden)
+        modulo.es_evaluable = request.POST.get('es_evaluable') == 'on'
         if request.FILES.get('archivo_adjunto'):
             modulo.archivo_adjunto = request.FILES['archivo_adjunto']
         if request.POST.get('eliminar_archivo') and modulo.archivo_adjunto:

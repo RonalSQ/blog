@@ -230,6 +230,11 @@
                                 <i data-lucide="paperclip" class="w-3 h-3"></i> Archivo
                             </span>
                             {% endif %}
+                            {% if modulo.es_evaluable %}
+                            <span class="hidden sm:flex items-center gap-1 text-xs font-bold text-amber-600/80 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full">
+                                <i data-lucide="clipboard-check" class="w-3 h-3"></i> Evaluable
+                            </span>
+                            {% endif %}
                             {% if modulo.video_url %}
                             <span class="hidden sm:flex items-center gap-1 text-xs font-bold text-red-600/80 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full">
                                 <i data-lucide="youtube" class="w-3 h-3"></i> Video
@@ -250,15 +255,49 @@
                          x-transition:leave-end="opacity-0 -translate-y-2"
                          class="border-t border-black/5 dark:border-white/5 px-5 pb-5 pt-4">
 
-                        <!-- Checkbox Completado -->
+                        <!-- Checkbox Completado o Estado de Evaluación -->
                         {% if tiene_acceso %}
                         <div class="mb-6 flex justify-end">
-                            <label class="cursor-pointer inline-flex items-center gap-3 bg-brand-50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800/50 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors px-4 py-2 rounded-xl">
-                                <input type="checkbox" class="toggle-completado form-checkbox h-5 w-5 text-brand-600 rounded focus:ring-brand-500 dark:focus:ring-brand-400"
-                                       data-url="{% url 'toggle_modulo_completado' curso.pk modulo.pk %}"
-                                       {% if modulo.id in modulos_completados_ids %}checked{% endif %}>
-                                <span class="text-sm font-bold text-brand-800 dark:text-brand-400 select-none">He visto este módulo</span>
-                            </label>
+                            {% if modulo.es_evaluable %}
+                                <div class="flex flex-col items-end gap-2">
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border shadow-sm
+                                        {% if not modulo.progreso_obj or modulo.progreso_obj.estado == 'pendiente' %}bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700
+                                        {% elif modulo.progreso_obj.estado == 'en_revision' %}bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800
+                                        {% elif modulo.progreso_obj.estado == 'aprobado' %}bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800
+                                        {% elif modulo.progreso_obj.estado == 'calificado' %}bg-brand-100 text-brand-700 border-brand-200 dark:bg-brand-900/30 dark:text-brand-400 dark:border-brand-800
+                                        {% endif %}">
+                                        <i data-lucide="{% if not modulo.progreso_obj or modulo.progreso_obj.estado == 'pendiente' %}clock{% elif modulo.progreso_obj.estado == 'en_revision' %}eye{% else %}check-circle{% endif %}" class="w-4 h-4"></i>
+                                        {% if not modulo.progreso_obj or modulo.progreso_obj.estado == 'pendiente' %}
+                                            Actividad Pendiente
+                                        {% elif modulo.progreso_obj.estado == 'en_revision' %}
+                                            En Revisión
+                                        {% elif modulo.progreso_obj.estado == 'aprobado' %}
+                                            Actividad Aprobada
+                                        {% elif modulo.progreso_obj.estado == 'calificado' %}
+                                            Actividad Calificada
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if modulo.progreso_obj and modulo.progreso_obj.calificacion %}
+                                    <div class="text-sm font-black text-brand-800 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-3 py-1 rounded-lg inline-flex items-center gap-1 border border-brand-100 dark:border-brand-800/50">
+                                        <i data-lucide="star" class="w-3.5 h-3.5"></i> Nota: {{ modulo.progreso_obj.calificacion }}
+                                    </div>
+                                    {% endif %}
+                                    {% if modulo.progreso_obj and modulo.progreso_obj.retroalimentacion %}
+                                    <div class="text-xs text-base-textLight/80 dark:text-white/80 max-w-lg text-right bg-black/5 dark:bg-white/5 px-4 py-3 rounded-xl mt-1 border-l-2 border-brand-400">
+                                        <p class="font-bold mb-1">Comentario del administrador:</p>
+                                        <p class="italic">"{{ modulo.progreso_obj.retroalimentacion }}"</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <label class="cursor-pointer inline-flex items-center gap-3 bg-brand-50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800/50 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors px-4 py-2 rounded-xl group">
+                                    <input type="checkbox" class="toggle-completado form-checkbox h-5 w-5 text-brand-600 rounded border-brand-300 dark:border-brand-700 focus:ring-brand-500 dark:focus:ring-brand-400 cursor-pointer"
+                                           data-url="{% url 'toggle_modulo_completado' curso.pk modulo.pk %}"
+                                           {% if modulo.id in modulos_completados_ids %}checked{% endif %}>
+                                    <span class="text-sm font-bold text-brand-800 dark:text-brand-400 select-none group-hover:text-brand-900 dark:group-hover:text-brand-300 transition-colors">He visto este módulo</span>
+                                </label>
+                            {% endif %}
                         </div>
                         {% endif %}
 
@@ -378,6 +417,9 @@
                         });
                         const data = await response.json();
                         if (response.ok) {
+                            // Sincronizar el estado visual del checkbox explícitamente con el servidor
+                            e.target.checked = data.completado;
+                            
                             // Actualizar contadores visuales
                             const countEl = document.getElementById('completados-count');
                             const pctEl = document.getElementById('porcentaje-text');

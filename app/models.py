@@ -129,6 +129,11 @@ class Modulo(models.Model):
         verbose_name='URL de Video (YouTube)',
         help_text='Pega aquí el enlace del video de YouTube para embeber.',
     )
+    es_evaluable = models.BooleanField(
+        default=False,
+        verbose_name='Es actividad evaluable',
+        help_text='Si se marca, el usuario no podrá completarlo manualmente; dependerá de la validación del administrador.',
+    )
     orden = models.PositiveIntegerField(default=0, verbose_name='Orden')
 
     class Meta:
@@ -216,7 +221,15 @@ class Carrusel(models.Model):
 # PROGRESO DE MÓDULO (Usuario ↔ Módulo)
 # ─────────────────────────────────────────────
 class ProgresoModulo(models.Model):
-    """Registra que un usuario ha completado (visto) un módulo específico."""
+    """Registra que un usuario ha completado (visto) un módulo específico o el estado de su actividad evaluable."""
+    
+    class Estado(models.TextChoices):
+        COMPLETADO = 'completado', 'Completado'
+        PENDIENTE = 'pendiente', 'Pendiente'
+        EN_REVISION = 'en_revision', 'En Revisión'
+        APROBADO = 'aprobado', 'Aprobado'
+        CALIFICADO = 'calificado', 'Calificado'
+
     usuario = models.ForeignKey(
         'app.Usuario',
         on_delete=models.CASCADE,
@@ -229,9 +242,25 @@ class ProgresoModulo(models.Model):
         related_name='progresos',
         verbose_name='Módulo',
     )
+    estado = models.CharField(
+        max_length=20,
+        choices=Estado.choices,
+        default=Estado.COMPLETADO,
+        verbose_name='Estado',
+    )
+    calificacion = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='Calificación'
+    )
+    retroalimentacion = models.TextField(
+        blank=True, verbose_name='Retroalimentación/Observaciones'
+    )
     fecha_completado = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Fecha de Completado',
+        verbose_name='Fecha de Registro',
+    )
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Última Actualización',
     )
 
     class Meta:

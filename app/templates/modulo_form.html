@@ -85,7 +85,7 @@
                 {% csrf_token %}
 
                 <!-- Título y Orden -->
-                <div class="p-8 grid grid-cols-1 sm:grid-cols-4 gap-6">
+                <div class="p-8 grid grid-cols-1 sm:grid-cols-4 gap-6 pb-2">
                     <div class="sm:col-span-3">
                         <label class="form-label" for="id_titulo">Título del Módulo *</label>
                         <input type="text" id="id_titulo" name="titulo" required
@@ -100,6 +100,18 @@
                                value="{% if modulo %}{{ modulo.orden }}{% else %}{{ siguiente_orden }}{% endif %}">
                         <p class="text-xs text-black/40 dark:text-white/30 mt-1 text-center">Posición</p>
                     </div>
+                </div>
+
+                <!-- Tipo de Módulo (Evaluable) -->
+                <div class="px-8 pb-6">
+                    <label class="cursor-pointer inline-flex items-center gap-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors px-5 py-3 rounded-xl group w-full">
+                        <input type="checkbox" name="es_evaluable" id="id_es_evaluable" class="form-checkbox h-5 w-5 text-amber-600 rounded border-amber-300 dark:border-amber-700 focus:ring-amber-500 dark:focus:ring-amber-400 cursor-pointer"
+                               {% if modulo and modulo.es_evaluable %}checked{% endif %}>
+                        <div>
+                            <span class="text-sm font-bold text-amber-800 dark:text-amber-400 select-none block">Es una actividad evaluable</span>
+                            <span class="text-xs text-amber-700/70 dark:text-amber-400/70 select-none">El estudiante no podrá marcarla como completada. El administrador debe validar y calificar.</span>
+                        </div>
+                    </label>
                 </div>
 
                 <!-- Descripción con Quill -->

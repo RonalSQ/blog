@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
-from .models import Usuario, Noticia, Curso, Modulo, Inscripcion, Carrusel
+from .models import Usuario, Noticia, Curso, Modulo, Inscripcion, Carrusel, ProgresoModulo
 
 
 # ─────────────────────────────────────────────
@@ -34,7 +34,7 @@ class UsuarioAdmin(BaseUserAdmin, ModelAdmin):
 class ModuloInline(TabularInline):
     model = Modulo
     extra = 1
-    fields = ('orden', 'titulo', 'descripcion', 'archivo_adjunto', 'video_url')
+    fields = ('orden', 'titulo', 'descripcion', 'archivo_adjunto', 'video_url', 'es_evaluable')
     ordering = ('orden',)
 
 
@@ -115,3 +115,30 @@ class CarruselAdmin(ModelAdmin):
             'fields': ('activo', 'orden')
         }),
     )
+
+
+# ─────────────────────────────────────────────
+# PROGRESO DE MÓDULO (EVALUACIÓN)
+# ─────────────────────────────────────────────
+@admin.register(ProgresoModulo)
+class ProgresoModuloAdmin(ModelAdmin):
+    list_display = ('usuario', 'modulo', 'estado', 'calificacion', 'fecha_actualizacion')
+    list_filter = ('estado', 'modulo__curso', 'modulo')
+    search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'modulo__titulo')
+    list_editable = ('estado', 'calificacion')
+    ordering = ('-fecha_actualizacion',)
+    
+    fieldsets = (
+        ('Información de Progreso', {
+            'fields': ('usuario', 'modulo')
+        }),
+        ('Evaluación', {
+            'fields': ('estado', 'calificacion', 'retroalimentacion')
+        }),
+    )
+    readonly_fields = ('usuario', 'modulo')
+
+    def has_add_permission(self, request):
+        # Es preferible que se creen solos cuando el usuario avanza o mediante otra vía, 
+        # pero permitimos agregar manualmente si es necesario.
+        return True
