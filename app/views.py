@@ -271,6 +271,7 @@ def curso_detalle_view(request, pk):
     # to easily access status, grade, and feedback for evaluable modules, 
     # and to check completion for normal modules.
     modulos_completados_ids = set()
+    progresos_dict = {}
     porcentaje = 0
 
     if tiene_acceso and total_modulos > 0:
