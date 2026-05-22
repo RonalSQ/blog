@@ -153,3 +153,65 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Configuración del Panel Django Unfold (Sidebar, Badges y Dashboard)
+UNFOLD = {
+    "SITE_TITLE": "ClubsHub Admin",
+    "SITE_HEADER": "ClubsHub",
+    "DASHBOARD_CALLBACK": "app.utils.dashboard_callback",
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "General",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Inicio",
+                        "link": "/admin/",
+                        "icon": "home",
+                    },
+                    {
+                        "title": "Usuarios",
+                        "link": "/admin/app/usuario/",
+                        "icon": "people",
+                    },
+                    {
+                        "title": "Slides del Carrusel",
+                        "link": "/admin/app/carrusel/",
+                        "icon": "view_carousel",
+                    },
+                    {
+                        "title": "Noticias",
+                        "link": "/admin/app/noticia/",
+                        "icon": "article",
+                    },
+                ],
+            },
+            {
+                "title": "Cursos y Progreso",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Cursos",
+                        "link": "/admin/app/curso/",
+                        "icon": "school",
+                    },
+                    {
+                        "title": "Inscripciones",
+                        "link": "/admin/app/inscripcion/",
+                        "icon": "assignment_turned_in",
+                        "badge": "app.utils.get_pending_enrollments_count",
+                    },
+                    {
+                        "title": "Progreso de Módulos (Evaluación)",
+                        "link": "/admin/app/progresomodulo/",
+                        "icon": "fact_check",
+                        "badge": "app.utils.get_review_requests_count",
+                    },
+                ],
+            },
+        ],
+    }
+}

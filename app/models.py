@@ -26,6 +26,12 @@ class Usuario(AbstractUser):
         default=Rol.ESTANDAR,
         verbose_name='Rol',
     )
+    foto_perfil = models.ImageField(
+        upload_to='perfiles/',
+        blank=True,
+        null=True,
+        verbose_name='Foto de Perfil',
+    )
 
     class Meta:
         verbose_name = 'Usuario'
@@ -288,6 +294,7 @@ def _delete_file_if_exists(file_field):
 
 # Modelos con campos de archivo que necesitan limpieza
 _FILE_FIELD_MODELS = {
+    Usuario: ['foto_perfil'],
     Noticia: ['imagen_portada'],
     Curso: ['imagen_portada'],
     Modulo: ['archivo_adjunto'],
@@ -321,3 +328,106 @@ def cleanup_files_on_delete(sender, instance, **kwargs):
     for field_name in _FILE_FIELD_MODELS[sender]:
         file_field = getattr(instance, field_name, None)
         _delete_file_if_exists(file_field)
+
+
+# ─────────────────────────────────────────────
+# SEÑALES: Gestión de Módulos Evaluables e Inscripciones
+# ─────────────────────────────────────────────
+@receiver(pre_save, sender=Inscripcion)
+def handle_inscripcion_pre_save(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old = Inscripcion.objects.get(pk=instance.pk)
+            instance._was_approved = old.aprobado_por_admin
+        except Inscripcion.DoesNotExist:
+            instance._was_approved = False
+    else:
+        instance._was_approved = False
+
+@receiver(models.signals.post_save, sender=Inscripcion)
+def handle_inscripcion_post_save(sender, instance, created, **kwargs):
+    if instance.aprobado_por_admin:
+        # Pre-crear ProgresoModulo en estado PENDIENTE para todos los módulos evaluables del curso
+        evaluable_modules = Modulo.objects.filter(curso=instance.curso, es_evaluable=True)
+        for modulo in evaluable_modules:
+            ProgresoModulo.objects.get_or_create(
+                usuario=instance.usuario,
+                modulo=modulo,
+                defaults={'estado': ProgresoModulo.Estado.PENDIENTE}
+            )
+            
+        # Enviar correo de aprobación si cambió a aprobado
+        was_approved = getattr(instance, '_was_approved', False)
+        if not was_approved:
+            from .utils import enviar_correo_inscripcion_aprobada
+            enviar_correo_inscripcion_aprobada(instance)
+    
+    if created and not instance.aprobado_por_admin:
+        # Nueva solicitud de inscripción -> Notificar al admin
+        from .utils import enviar_correo_inscripcion_pendiente
+        enviar_correo_inscripcion_pendiente(instance)
+
+
+@receiver(pre_save, sender=Modulo)
+def handle_modulo_pre_save(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old = Modulo.objects.get(pk=instance.pk)
+            instance._old_es_evaluable = old.es_evaluable
+        except Modulo.DoesNotExist:
+            instance._old_es_evaluable = False
+    else:
+        instance._old_es_evaluable = False
+
+@receiver(models.signals.post_save, sender=Modulo)
+def handle_modulo_post_save(sender, instance, created, **kwargs):
+    old_es_evaluable = getattr(instance, '_old_es_evaluable', False)
+    
+    if instance.es_evaluable and (created or not old_es_evaluable):
+        # El módulo pasó a ser evaluable: Crear ProgresoModulo en PENDIENTE para estudiantes aprobados
+        approved_enrollments = Inscripcion.objects.filter(curso=instance.curso, aprobado_por_admin=True)
+        for insc in approved_enrollments:
+            ProgresoModulo.objects.get_or_create(
+                usuario=insc.usuario,
+                modulo=instance,
+                defaults={'estado': ProgresoModulo.Estado.PENDIENTE}
+            )
+            
+    elif not instance.es_evaluable and not created and old_es_evaluable:
+        # El módulo dejó de ser evaluable:
+        # 1. Eliminar progresos en PENDIENTE o EN_REVISION
+        ProgresoModulo.objects.filter(
+            modulo=instance,
+            estado__in=[ProgresoModulo.Estado.PENDIENTE, ProgresoModulo.Estado.EN_REVISION]
+        ).delete()
+        
+        # 2. Convertir APROBADO o CALIFICADO a COMPLETADO normal
+        ProgresoModulo.objects.filter(
+            modulo=instance,
+            estado__in=[ProgresoModulo.Estado.APROBADO, ProgresoModulo.Estado.CALIFICADO]
+        ).update(
+            estado=ProgresoModulo.Estado.COMPLETADO,
+            calificacion=None,
+            retroalimentacion=''
+        )
+
+
+@receiver(pre_save, sender=ProgresoModulo)
+def handle_progreso_pre_save(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old = ProgresoModulo.objects.get(pk=instance.pk)
+            instance._old_estado = old.estado
+        except ProgresoModulo.DoesNotExist:
+            instance._old_estado = None
+    else:
+        instance._old_estado = None
+
+@receiver(models.signals.post_save, sender=ProgresoModulo)
+def handle_progreso_post_save(sender, instance, created, **kwargs):
+    old_estado = getattr(instance, '_old_estado', None)
+    
+    # Si cambió a APROBADO o CALIFICADO -> Notificar al estudiante
+    if instance.estado in [ProgresoModulo.Estado.APROBADO, ProgresoModulo.Estado.CALIFICADO] and old_estado != instance.estado:
+        from .utils import enviar_correo_actividad_calificada
+        enviar_correo_actividad_calificada(instance)

@@ -259,37 +259,42 @@
                         {% if tiene_acceso %}
                         <div class="mb-6 flex justify-end">
                             {% if modulo.es_evaluable %}
-                                <div class="flex flex-col items-end gap-2">
-                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border shadow-sm
-                                        {% if not modulo.progreso_obj or modulo.progreso_obj.estado == 'pendiente' %}bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700
-                                        {% elif modulo.progreso_obj.estado == 'en_revision' %}bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800
-                                        {% elif modulo.progreso_obj.estado == 'aprobado' %}bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800
-                                        {% elif modulo.progreso_obj.estado == 'calificado' %}bg-brand-100 text-brand-700 border-brand-200 dark:bg-brand-900/30 dark:text-brand-400 dark:border-brand-800
-                                        {% endif %}">
-                                        <i data-lucide="{% if not modulo.progreso_obj or modulo.progreso_obj.estado == 'pendiente' %}clock{% elif modulo.progreso_obj.estado == 'en_revision' %}eye{% else %}check-circle{% endif %}" class="w-4 h-4"></i>
-                                        {% if not modulo.progreso_obj or modulo.progreso_obj.estado == 'pendiente' %}
-                                            Actividad Pendiente
-                                        {% elif modulo.progreso_obj.estado == 'en_revision' %}
-                                            En Revisión
-                                        {% elif modulo.progreso_obj.estado == 'aprobado' %}
-                                            Actividad Aprobada
-                                        {% elif modulo.progreso_obj.estado == 'calificado' %}
-                                            Actividad Calificada
-                                        {% endif %}
-                                    </div>
-                                    
-                                    {% if modulo.progreso_obj and modulo.progreso_obj.calificacion %}
-                                    <div class="text-sm font-black text-brand-800 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-3 py-1 rounded-lg inline-flex items-center gap-1 border border-brand-100 dark:border-brand-800/50">
-                                        <i data-lucide="star" class="w-3.5 h-3.5"></i> Nota: {{ modulo.progreso_obj.calificacion }}
-                                    </div>
-                                    {% endif %}
-                                    {% if modulo.progreso_obj and modulo.progreso_obj.retroalimentacion %}
-                                    <div class="text-xs text-base-textLight/80 dark:text-white/80 max-w-lg text-right bg-black/5 dark:bg-white/5 px-4 py-3 rounded-xl mt-1 border-l-2 border-brand-400">
-                                        <p class="font-bold mb-1">Comentario del administrador:</p>
-                                        <p class="italic">"{{ modulo.progreso_obj.retroalimentacion }}"</p>
-                                    </div>
-                                    {% endif %}
-                                </div>
+                                 <div class="flex flex-col items-end gap-2" id="eval-container-{{ modulo.pk }}">
+                                     {% if not modulo.progreso_obj or modulo.progreso_obj.estado == 'pendiente' %}
+                                         <button class="btn-enviar-revision inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-brand-800 text-white hover:bg-brand-700 active:scale-95 transition-all shadow-md shadow-brand-800/20 cursor-pointer dark:bg-brand-500 dark:text-brand-950 dark:hover:bg-brand-400"
+                                                 data-url="{% url 'toggle_modulo_completado' curso.pk modulo.pk %}">
+                                             <i data-lucide="send" class="w-4 h-4"></i>
+                                             Enviar a revisión
+                                         </button>
+                                     {% else %}
+                                         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border shadow-sm
+                                             {% if modulo.progreso_obj.estado == 'en_revision' %}bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800
+                                             {% elif modulo.progreso_obj.estado == 'aprobado' %}bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800
+                                             {% elif modulo.progreso_obj.estado == 'calificado' %}bg-brand-100 text-brand-700 border-brand-200 dark:bg-brand-900/30 dark:text-brand-400 dark:border-brand-800
+                                             {% endif %}">
+                                             <i data-lucide="{% if modulo.progreso_obj.estado == 'en_revision' %}eye{% else %}check-circle{% endif %}" class="w-4 h-4"></i>
+                                             {% if modulo.progreso_obj.estado == 'en_revision' %}
+                                                 En Revisión
+                                             {% elif modulo.progreso_obj.estado == 'aprobado' %}
+                                                 Actividad Aprobada
+                                             {% elif modulo.progreso_obj.estado == 'calificado' %}
+                                                 Actividad Calificada
+                                             {% endif %}
+                                         </div>
+                                         
+                                         {% if modulo.progreso_obj.calificacion %}
+                                         <div class="text-sm font-black text-brand-800 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-3 py-1 rounded-lg inline-flex items-center gap-1 border border-brand-100 dark:border-brand-800/50">
+                                             <i data-lucide="star" class="w-3.5 h-3.5"></i> Nota: {{ modulo.progreso_obj.calificacion }}
+                                         </div>
+                                         {% endif %}
+                                         {% if modulo.progreso_obj.retroalimentacion %}
+                                         <div class="text-xs text-base-textLight/80 dark:text-white/80 max-w-lg text-right bg-black/5 dark:bg-white/5 px-4 py-3 rounded-xl mt-1 border-l-2 border-brand-400">
+                                             <p class="font-bold mb-1">Comentario del administrador:</p>
+                                             <p class="italic">"{{ modulo.progreso_obj.retroalimentacion }}"</p>
+                                         </div>
+                                         {% endif %}
+                                     {% endif %}
+                                 </div>
                             {% else %}
                                 <label class="cursor-pointer inline-flex items-center gap-3 bg-brand-50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800/50 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors px-4 py-2 rounded-xl group">
                                     <input type="checkbox" class="toggle-completado form-checkbox h-5 w-5 text-brand-600 rounded border-brand-300 dark:border-brand-700 focus:ring-brand-500 dark:focus:ring-brand-400 cursor-pointer"
@@ -446,6 +451,61 @@
                     } catch (error) {
                         console.error('Error:', error);
                         e.target.checked = !e.target.checked;
+                    }
+                });
+            });
+
+            // Lógica para enviar actividad evaluable a revisión
+            document.querySelectorAll('.btn-enviar-revision').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const btn = e.currentTarget;
+                    const url = btn.dataset.url;
+                    
+                    if (btn.disabled) return;
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                            const container = btn.closest('.flex-col');
+                            if (container) {
+                                container.innerHTML = `
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border shadow-sm bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                        En Revisión
+                                    </div>
+                                `;
+                                if (window.lucide) {
+                                    window.lucide.createIcons();
+                                }
+                            }
+                            
+                            const countEl = document.getElementById('completados-count');
+                            const pctEl = document.getElementById('porcentaje-text');
+                            const barEl = document.getElementById('progress-bar');
+                            if (countEl) countEl.innerText = data.completados;
+                            if (pctEl) pctEl.innerText = data.porcentaje + '%';
+                            if (barEl) barEl.style.width = data.porcentaje + '%';
+                        } else {
+                            console.error('Error:', data.error);
+                            alert(data.error || 'Ocurrió un error al enviar la actividad.');
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Error de red. Intenta de nuevo.');
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
                     }
                 });
             });

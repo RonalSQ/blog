@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClubsHub - Mi Perfil</title>
+    <meta name="description" content="Visualiza tu progreso, calificaciones y gestiona tus datos personales en ClubsHub.">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Satoshi', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#01696f', 900: '#134e4a', 950: '#042f2e' },
+                        base: { light: '#f7f6f2', dark: '#121212', cardLight: '#ffffff', cardDark: '#1e1e1e', textLight: '#28251d', textDark: '#e4e4e7' }
+                    },
+                    fontSize: {
+                        'fluid-base': 'clamp(1rem, 1vw + 0.8rem, 1.125rem)',
+                        'fluid-3xl': 'clamp(2.5rem, 4vw + 1.5rem, 4.5rem)',
+                    },
+                    spacing: { 'fluid-gutter': 'clamp(1rem, 3vw, 3rem)', 'fluid-section': 'clamp(4rem, 8vw, 8rem)' }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-base-light text-base-textLight font-sans antialiased transition-colors duration-300; }
+            .dark body { @apply bg-base-dark text-base-textDark; }
+        }
+        @layer components {
+            .btn { @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 active:scale-95; }
+            .card { @apply bg-base-cardLight dark:bg-base-cardDark rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 transition-all duration-500 hover:shadow-xl; }
+            .form-input { @apply w-full px-4 py-3 rounded-xl bg-white dark:bg-[#222222] border border-black/10 dark:border-white/10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-base-textLight dark:text-base-textDark; }
+            .form-label { @apply block text-sm font-bold mb-1 text-base-textLight/80 dark:text-base-textDark/80; }
+        }
+        .gsap-reveal { opacity: 0; transform: translateY(30px); }
+    </style>
+</head>
+<body x-data="profileComponent()" x-init="setTimeout(() => { lucide.createIcons(); initAnimations(); }, 50)"
+      class="overflow-x-hidden flex flex-col min-h-screen pt-20">
+
+    {% include 'nav.html' %}
+
+    {% if messages %}
+    <div class="fixed top-20 right-4 z-[100] flex flex-col gap-2">
+        {% for message in messages %}
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 5000)" x-show="show" x-transition
+             class="px-5 py-3 rounded-xl shadow-xl font-medium text-sm flex items-center gap-3 {% if message.tags == 'error' %}bg-red-600 text-white{% else %}bg-brand-800 text-white dark:bg-brand-500 dark:text-brand-950{% endif %}">
+            <span>{{ message }}</span>
+            <button @click="show = false" class="ml-2 opacity-70 hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="flex-1 w-full max-w-[1920px] mx-auto px-fluid-gutter pt-8 pb-fluid-section">
+        
+        <!-- Header -->
+        <div class="mb-12 gsap-reveal">
+            <h1 class="text-fluid-3xl font-black mb-2">Mi <span class="text-brand-800 dark:text-brand-400">Perfil</span></h1>
+            <p class="text-fluid-base text-base-textLight/70 dark:text-base-textDark/70 max-w-2xl">
+                Administra tus datos, actualiza tu foto de perfil y haz seguimiento de tu progreso académico.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Side: Profile Edit Form -->
+            <section class="lg:col-span-5 gsap-reveal">
+                <div class="card p-8">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2 border-b border-black/5 dark:border-white/5 pb-4">
+                        <i data-lucide="user-cog" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
+                        Datos Personales
+                    </h2>
+
+                    <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-6" id="profile-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="eliminar_foto" id="eliminar_foto_input" value="0">
+
+                        <!-- Photo Section -->
+                        <div class="flex flex-col sm:flex-row items-center gap-6 bg-black/5 dark:bg-white/5 p-6 rounded-2xl">
+                            <!-- Image container -->
+                            <div class="relative group">
+                                {% if user.foto_perfil %}
+                                <img src="{{ user.foto_perfil.url }}" alt="Avatar" class="w-28 h-28 rounded-full object-cover border-4 border-brand-800 dark:border-brand-500 shadow-lg" id="avatar-preview">
+                                {% else %}
+                                <div class="w-28 h-28 rounded-full bg-brand-800 dark:bg-brand-900/50 text-white dark:text-brand-400 flex items-center justify-center text-4xl font-black border-4 border-brand-800 dark:border-brand-500 shadow-lg select-none" id="avatar-placeholder">
+                                    {{ user.first_name|first|default:user.username|first|upper }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex flex-col gap-2 items-center sm:items-start flex-1">
+                                <span class="text-xs font-bold uppercase tracking-wider opacity-60">Foto de perfil</span>
+                                <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
+                                    <label class="cursor-pointer bg-brand-800 text-white hover:bg-brand-700 dark:bg-brand-500 dark:text-brand-950 dark:hover:bg-brand-400 px-4 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow">
+                                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                        Subir Foto
+                                        <input type="file" name="foto_perfil" class="hidden" accept="image/*" @change="previewImage($event)">
+                                    </label>
+                                    
+                                    {% if user.foto_perfil %}
+                                    <button type="button" @click="eliminarFoto()" class="bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-900/30 px-4 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        Eliminar
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <span class="text-[10px] opacity-40">Formatos: JPG, PNG. Máx 2MB.</span>
+                            </div>
+                        </div>
+
+                        <!-- Basic Information -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label" for="first_name">Nombre</label>
+                                <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="form-input" required>
+                            </div>
+                            <div>
+                                <label class="form-label" for="last_name">Apellido</label>
+                                <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="form-input" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="email">Correo Electrónico</label>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" class="form-input" required>
+                        </div>
+
+                        <!-- Change Password Section (Collapse/Expand) -->
+                        <div x-data="{ changePass: false }" class="border border-black/5 dark:border-white/5 rounded-2xl p-4 bg-black/[0.02] dark:bg-white/[0.02]">
+                            <button type="button" @click="changePass = !changePass" class="flex justify-between items-center w-full text-sm font-bold text-base-textLight/80 dark:text-base-textDark/80">
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="lock" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    Cambiar Contraseña
+                                </span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" :class="{'rotate-180': changePass}"></i>
+                            </button>
+
+                            <div x-show="changePass" x-collapse x-cloak class="mt-4 flex flex-col gap-4">
+                                <div>
+                                    <label class="form-label" for="password1">Nueva Contraseña</label>
+                                    <input type="password" id="password1" name="password1" class="form-input" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="password2">Confirmar Nueva Contraseña</label>
+                                    <input type="password" id="password2" name="password2" class="form-input" placeholder="Confirmar contraseña" autocomplete="new-password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn bg-brand-800 text-white hover:bg-brand-700 dark:bg-brand-500 dark:text-brand-950 dark:hover:bg-brand-400 font-bold py-3 shadow-lg shadow-brand-800/10 dark:shadow-brand-500/10">
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                            Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Right Side: Learning Progress & Grades -->
+            <section class="lg:col-span-7 flex flex-col gap-8">
+                
+                <!-- Courses Progress -->
+                <div class="card p-8 gsap-reveal">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2 border-b border-black/5 dark:border-white/5 pb-4">
+                        <i data-lucide="graduation-cap" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
+                        Mis Cursos Activos
+                    </h2>
+
+                    {% if cursos_progreso %}
+                    <div class="flex flex-col gap-6">
+                        {% for item in cursos_progreso %}
+                        <div class="border border-black/5 dark:border-white/5 p-5 rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg mb-1 leading-snug">{{ item.curso.titulo }}</h3>
+                                <p class="text-xs opacity-60 flex items-center gap-1">
+                                    <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                                    Completados: {{ item.completados }} / {{ item.total_modulos }} módulos
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-4 min-w-[200px]">
+                                <div class="flex-1">
+                                    <div class="w-full bg-black/10 dark:bg-white/10 rounded-full h-2">
+                                        <div class="bg-brand-800 dark:bg-brand-400 h-2 rounded-full transition-all duration-700" style="width: {{ item.porcentaje }}%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-black text-brand-800 dark:text-brand-400">{{ item.porcentaje }}%</span>
+                                <a href="{% url 'curso_detalle' item.curso.pk %}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:hover:bg-brand-900/50 dark:text-brand-400 transition-all active:scale-95" title="Ir al curso">
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12 bg-black/5 dark:bg-white/5 rounded-2xl">
+                        <i data-lucide="folder-open" class="w-12 h-12 opacity-30 mx-auto mb-3"></i>
+                        <p class="text-sm font-bold opacity-60">No estás inscrito en ningún curso aprobado.</p>
+                        <a href="{% url 'cursos' %}" class="text-brand-800 dark:text-brand-400 text-xs font-black uppercase tracking-wider hover:underline mt-2 inline-block">
+                            Explorar catálogo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Evaluables Tasks Status & Grades -->
+                <div class="card p-8 gsap-reveal">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2 border-b border-black/5 dark:border-white/5 pb-4">
+                        <i data-lucide="file-check-2" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
+                        Evaluación de Actividades
+                    </h2>
+
+                    {% if progresos_evaluables %}
+                    <div class="flex flex-col gap-4 max-h-[600px] overflow-y-auto pr-2">
+                        {% for progreso in progresos_evaluables %}
+                        <div class="border border-black/5 dark:border-white/5 p-5 rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] flex flex-col gap-3">
+                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">{{ progreso.modulo.titulo }}</h3>
+                                    <span class="text-[11px] opacity-50">{{ progreso.modulo.curso.titulo }}</span>
+                                </div>
+                                
+                                <span class="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-sm
+                                    {% if progreso.estado == 'pendiente' %}bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800/50 dark:text-gray-400 dark:border-gray-700
+                                    {% elif progreso.estado == 'en_revision' %}bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50
+                                    {% elif progreso.estado == 'aprobado' %}bg-green-50 text-green-700 border-green-100 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/50
+                                    {% elif progreso.estado == 'calificado' %}bg-brand-50 text-brand-800 border-brand-100 dark:bg-brand-950/20 dark:text-brand-400 dark:border-brand-900/50
+                                    {% endif %}">
+                                    <i data-lucide="{% if progreso.estado == 'pendiente' %}clock{% elif progreso.estado == 'en_revision' %}eye{% else %}check-circle{% endif %}" class="w-3.5 h-3.5"></i>
+                                    {{ progreso.get_estado_display }}
+                                </span>
+                            </div>
+
+                            {% if progreso.calificacion or progreso.retroalimentacion %}
+                            <div class="border-t border-black/5 dark:border-white/5 pt-3 mt-1 flex flex-col gap-2">
+                                {% if progreso.calificacion %}
+                                <div class="inline-flex items-center gap-1.5 text-sm font-black text-brand-800 dark:text-brand-400 bg-brand-50/50 dark:bg-brand-900/10 px-3 py-1 rounded-xl w-fit border border-brand-100/50 dark:border-brand-800/30">
+                                    <i data-lucide="star" class="w-3.5 h-3.5"></i>
+                                    Calificación: {{ progreso.calificacion }}
+                                </div>
+                                {% endif %}
+                                
+                                {% if progreso.retroalimentacion %}
+                                <div class="text-xs bg-black/[0.02] dark:bg-white/[0.02] p-3 rounded-xl border-l-2 border-brand-500/80">
+                                    <p class="font-bold opacity-60 mb-1">Comentario del evaluador:</p>
+                                    <p class="italic opacity-85">"{{ progreso.retroalimentacion }}"</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12 bg-black/5 dark:bg-white/5 rounded-2xl">
+                        <i data-lucide="file-warning" class="w-12 h-12 opacity-30 mx-auto mb-3"></i>
+                        <p class="text-sm font-bold opacity-60">Aún no tienes actividades evaluables registradas.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="py-12 border-t border-black/5 dark:border-white/5 bg-white dark:bg-black/20">
+        <div class="w-full max-w-[1920px] mx-auto px-fluid-gutter flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <i data-lucide="atom" class="w-6 h-6 text-brand-800 dark:text-brand-500"></i>
+                <span class="font-black text-xl">ClubsHub</span>
+            </div>
+            <p class="text-sm text-base-textLight/60 dark:text-base-textDark/60 font-medium tracking-wide">
+                &copy; 2026 Universidad. Plataforma de Clubes.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        function profileComponent() {
+            return {
+                previewImage(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        // Validar tamaño (máximo 2MB)
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert("La imagen excede el límite de 2MB.");
+                            event.target.value = '';
+                            return;
+                        }
+                        
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            // Crear o actualizar preview
+                            let preview = document.getElementById('avatar-preview');
+                            let placeholder = document.getElementById('avatar-placeholder');
+                            
+                            if (placeholder) {
+                                // Reemplazar placeholder por img
+                                const img = document.createElement('img');
+                                img.id = 'avatar-preview';
+                                img.src = e.target.result;
+                                img.className = 'w-28 h-28 rounded-full object-cover border-4 border-brand-800 dark:border-brand-500 shadow-lg';
+                                placeholder.parentNode.replaceChild(img, placeholder);
+                            } else if (preview) {
+                                preview.src = e.target.result;
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                eliminarFoto() {
+                    if (confirm("¿Estás seguro de que deseas eliminar tu foto de perfil?")) {
+                        document.getElementById('eliminar_foto_input').value = '1';
+                        document.getElementById('profile-form').submit();
+                    }
+                }
+            }
+        }
+
+        function initAnimations() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                gsap.set('.gsap-reveal', { opacity: 1, y: 0 });
+                return;
+            }
+            gsap.utils.toArray('.gsap-reveal').forEach((elem, i) => {
+                gsap.to(elem, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.6,
+                    ease: "power3.out",
+                    delay: i * 0.15
+                });
+            });
+        }
+    </script>
+</body>
+</html>

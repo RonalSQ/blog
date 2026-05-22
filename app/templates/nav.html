@@ -72,6 +72,9 @@
                                 {{ user.get_rol_display }}
                             </span>
                         </div>
+                        <a href="{% url 'perfil' %}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-base-textLight dark:text-white">
+                            <i data-lucide="user" class="w-4 h-4"></i> Mi Perfil
+                        </a>
                         {% if user.rol == 'administrador' %}
                         <a href="/admin/" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-base-textLight dark:text-white">
                             <i data-lucide="settings" class="w-4 h-4"></i> Panel de Admin
@@ -126,6 +129,12 @@
                     <p class="font-bold dark:text-white">{{ user.get_full_name|default:user.username }}</p>
                     <p class="text-xs opacity-60 dark:text-white">{{ user.get_rol_display }}</p>
                 </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <a href="{% url 'perfil' %}" class="border-2 border-black/10 dark:border-white/10 text-base-textLight dark:text-white rounded-full py-3 font-bold text-center block">Mi Perfil</a>
+                {% if user.rol == 'administrador' %}
+                <a href="/admin/" class="border-2 border-brand-800/10 text-brand-800 dark:border-brand-500/10 dark:text-brand-400 rounded-full py-3 font-bold text-center block">Panel de Admin</a>
+                {% endif %}
             </div>
             <a href="{% url 'logout' %}" class="border-2 border-red-200 text-red-600 rounded-full py-3 font-bold text-center block">Cerrar Sesión</a>
             {% else %}

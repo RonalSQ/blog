@@ -19,12 +19,12 @@ class UsuarioAdmin(BaseUserAdmin, ModelAdmin):
     search_fields = ('username', 'email', 'first_name', 'last_name')
     ordering = ('username',)
 
-    # Agrega el campo 'rol' a los fieldsets de edición del usuario
+    # Agrega el campo 'rol' y 'foto_perfil' a los fieldsets de edición del usuario
     fieldsets = BaseUserAdmin.fieldsets + (
-        ('Rol en ClubsHub', {'fields': ('rol',)}),
+        ('Información de ClubsHub', {'fields': ('rol', 'foto_perfil')}),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('Rol en ClubsHub', {'fields': ('rol',)}),
+        ('Información de ClubsHub', {'fields': ('rol', 'foto_perfil')}),
     )
 
 

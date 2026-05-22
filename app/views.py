@@ -323,7 +323,38 @@ def toggle_modulo_completado(request, curso_pk, modulo_pk):
         return JsonResponse({'error': 'Sin acceso'}, status=403)
 
     if modulo.es_evaluable:
-        return JsonResponse({'error': 'No se puede marcar manualmente un módulo evaluable'}, status=400)
+        # Obtener o crear progreso en estado PENDIENTE si no existe
+        progreso, created = ProgresoModulo.objects.get_or_create(
+            usuario=request.user,
+            modulo=modulo,
+            defaults={'estado': ProgresoModulo.Estado.PENDIENTE}
+        )
+        if progreso.estado == ProgresoModulo.Estado.PENDIENTE:
+            progreso.estado = ProgresoModulo.Estado.EN_REVISION
+            progreso.save()
+            
+            # Enviar correo al administrador notificando la entrega
+            from .utils import enviar_correo_actividad_entregada
+            enviar_correo_actividad_entregada(progreso)
+            
+            # Recalcular porcentajes del curso
+            total = curso.modulos.count()
+            completados = 0
+            progresos = ProgresoModulo.objects.filter(usuario=request.user, modulo__curso=curso)
+            for p in progresos:
+                if p.estado in [ProgresoModulo.Estado.COMPLETADO, ProgresoModulo.Estado.APROBADO, ProgresoModulo.Estado.CALIFICADO]:
+                    completados += 1
+            porcentaje = int((completados / total) * 100) if total > 0 else 0
+            
+            return JsonResponse({
+                'completado': False,
+                'completados': completados,
+                'total': total,
+                'porcentaje': porcentaje,
+                'estado': progreso.estado,
+            })
+        else:
+            return JsonResponse({'error': 'Esta actividad ya ha sido enviada o calificada'}, status=400)
 
     # Toggle: si ya existe, eliminarlo; si no, crearlo con estado COMPLETADO
     progreso = ProgresoModulo.objects.filter(usuario=request.user, modulo=modulo).first()
@@ -479,3 +510,89 @@ def registro_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+
+# ─────────────────────────────────────────────
+# PERFIL DE USUARIO
+# ─────────────────────────────────────────────
+from django.contrib.auth import update_session_auth_hash
+
+@login_required(login_url='login')
+def perfil_view(request):
+    """Visualización y edición del perfil de usuario."""
+    usuario = request.user
+    
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        foto = request.FILES.get('foto_perfil')
+        eliminar_foto = request.POST.get('eliminar_foto') == '1'
+        
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        
+        # Guardar datos básicos
+        usuario.first_name = first_name
+        usuario.last_name = last_name
+        usuario.email = email
+        
+        if foto:
+            usuario.foto_perfil = foto
+        elif eliminar_foto:
+            usuario.foto_perfil = None
+            
+        # Cambiar contraseña
+        cambio_pass = False
+        if password1 or password2:
+            if password1 != password2:
+                messages.error(request, 'Las nuevas contraseñas no coinciden.')
+                return redirect('perfil')
+            elif len(password1) < 6:
+                messages.error(request, 'La contraseña debe tener al menos 6 caracteres.')
+                return redirect('perfil')
+            else:
+                usuario.set_password(password1)
+                cambio_pass = True
+                
+        usuario.save()
+        if cambio_pass:
+            update_session_auth_hash(request, usuario)
+            
+        messages.success(request, 'Perfil actualizado correctamente.')
+        return redirect('perfil')
+
+    # Cursos inscritos
+    inscripciones = Inscripcion.objects.filter(usuario=usuario, aprobado_por_admin=True).select_related('curso')
+    cursos_progreso = []
+    
+    for insc in inscripciones:
+        curso = insc.curso
+        total_modulos = curso.modulos.count()
+        modulos_completados_ids = set()
+        
+        progresos = ProgresoModulo.objects.filter(usuario=usuario, modulo__curso=curso)
+        for p in progresos:
+            if p.estado in [ProgresoModulo.Estado.COMPLETADO, ProgresoModulo.Estado.APROBADO, ProgresoModulo.Estado.CALIFICADO]:
+                modulos_completados_ids.add(p.modulo_id)
+                
+        porcentaje = int((len(modulos_completados_ids) / total_modulos) * 100) if total_modulos > 0 else 0
+        cursos_progreso.append({
+            'curso': curso,
+            'porcentaje': porcentaje,
+            'total_modulos': total_modulos,
+            'completados': len(modulos_completados_ids)
+        })
+        
+    # Calificaciones y retroalimentaciones de actividades evaluables
+    progresos_evaluables = ProgresoModulo.objects.filter(
+        usuario=usuario, 
+        modulo__es_evaluable=True
+    ).select_related('modulo', 'modulo__curso').order_by('-fecha_actualizacion')
+    
+    context = {
+        'cursos_progreso': cursos_progreso,
+        'progresos_evaluables': progresos_evaluables,
+    }
+    return render(request, 'perfil.html', context)
+

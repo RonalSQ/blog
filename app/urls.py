@@ -31,4 +31,5 @@ urlpatterns = [
     
     # Progreso
     path('cursos/<int:curso_pk>/modulo/<int:modulo_pk>/completar/', views.toggle_modulo_completado, name='toggle_modulo_completado'),
+    path('perfil/', views.perfil_view, name='perfil'),
 ]
