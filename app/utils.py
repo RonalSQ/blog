@@ -1,6 +1,34 @@
+import threading
+import logging
 from django.core.mail import send_mail
+from django.core.mail.backends.smtp import EmailBackend
 from django.conf import settings
 from django.urls import reverse
+
+logger = logging.getLogger(__name__)
+
+class AsynchronousEmailBackend(EmailBackend):
+    """
+    Backend de correo personalizado que envía correos electrónicos en un hilo
+    secundario para evitar bloquear el hilo principal de la petición HTTP.
+    """
+    def send_messages(self, email_messages):
+        if not email_messages:
+            return 0
+        thread = threading.Thread(
+            target=self._send_in_background,
+            args=(email_messages,)
+        )
+        thread.daemon = True
+        thread.start()
+        return len(email_messages)
+
+    def _send_in_background(self, email_messages):
+        try:
+            super().send_messages(email_messages)
+        except Exception as e:
+            logger.error(f"Error al enviar correo en segundo plano: {e}", exc_info=True)
+
 
 def enviar_correo_inscripcion_pendiente(inscripcion):
     """Notifica a los admins de una nueva solicitud de inscripción."""
