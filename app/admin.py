@@ -117,11 +117,30 @@ class CarruselAdmin(ModelAdmin):
     )
 
 
+from django import forms
+
+class ProgresoModuloAdminForm(forms.ModelForm):
+    class Meta:
+        model = ProgresoModulo
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        allowed_states = [
+            (ProgresoModulo.Estado.EN_REVISION, 'En Revisión'),
+            (ProgresoModulo.Estado.CALIFICADO, 'Calificado'),
+        ]
+        if self.instance and self.instance.pk and self.instance.estado not in [ProgresoModulo.Estado.EN_REVISION, ProgresoModulo.Estado.CALIFICADO]:
+            allowed_states.insert(0, (self.instance.estado, self.instance.get_estado_display()))
+        self.fields['estado'].choices = allowed_states
+
+
 # ─────────────────────────────────────────────
 # PROGRESO DE MÓDULO (EVALUACIÓN)
 # ─────────────────────────────────────────────
 @admin.register(ProgresoModulo)
 class ProgresoModuloAdmin(ModelAdmin):
+    form = ProgresoModuloAdminForm
     list_display = ('usuario', 'modulo', 'estado', 'calificacion', 'fecha_actualizacion')
     list_filter = ('estado', 'modulo__curso', 'modulo')
     search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'modulo__titulo')
