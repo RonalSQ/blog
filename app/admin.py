@@ -165,3 +165,7 @@ class ProgresoModuloAdmin(ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(modulo__es_evaluable=True)
+
+    def get_changelist_form(self, request, **kwargs):
+        kwargs['form'] = self.form
+        return super().get_changelist_form(request, **kwargs)
