@@ -274,6 +274,7 @@ def curso_detalle_view(request, pk):
     progresos_dict = {}
     porcentaje = 0
 
+    nota_promedio = None
     if tiene_acceso and total_modulos > 0:
         progresos = ProgresoModulo.objects.filter(
             usuario=request.user,
@@ -288,6 +289,17 @@ def curso_detalle_view(request, pk):
         
         porcentaje = int((len(modulos_completados_ids) / total_modulos) * 100)
 
+        # Calcular nota promedio de módulos evaluables calificados
+        evaluable_modulos_ids = [m.id for m in modulos if m.es_evaluable]
+        if evaluable_modulos_ids:
+            progresos_evaluables = [
+                progresos_dict[m_id] for m_id in evaluable_modulos_ids 
+                if m_id in progresos_dict and progresos_dict[m_id].calificacion is not None
+            ]
+            if progresos_evaluables:
+                total_calif = sum(p.calificacion for p in progresos_evaluables)
+                nota_promedio = total_calif / len(progresos_evaluables)
+
     context = {
         'curso': curso,
         'modulos': modulos,
@@ -298,6 +310,7 @@ def curso_detalle_view(request, pk):
         'total_modulos': total_modulos,
         'modulos_completados_count': len(modulos_completados_ids),
         'porcentaje': porcentaje,
+        'nota_promedio': nota_promedio,
     }
     return render(request, 'curso_detalle.html', context)
 

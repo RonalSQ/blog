@@ -128,17 +128,38 @@
                         <i data-lucide="award" class="w-4 h-4"></i>
                         ¡Felicitaciones! Has completado el curso.
                     </div>
+
+                    {% if nota_promedio is not None %}
+                    <div class="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
+                        <span class="text-xs font-bold text-base-textLight/70 dark:text-base-textDark/70">Nota Promedio (Actividades):</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-black {% if nota_promedio >= 3.0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                {{ nota_promedio|floatformat:2 }}
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {% if nota_promedio >= 3.0 %}bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400{% else %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+                                {% if nota_promedio >= 3.0 %}Aprobó{% else %}Reprobó{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
 
                 <!-- Botón de inscripción -->
                 {% if user.is_authenticated and user.rol == 'administrador' or user.is_superuser %}
-                <div class="inline-flex items-center gap-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 px-6 py-4 rounded-2xl text-brand-700 dark:text-brand-400">
-                    <i data-lucide="shield-check" class="w-5 h-5 flex-shrink-0"></i>
-                    <div>
-                        <p class="font-bold text-sm">Acceso de Administrador</p>
-                        <p class="text-xs opacity-80">Tienes acceso completo a todos los módulos.</p>
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="inline-flex items-center gap-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 px-6 py-4 rounded-2xl text-brand-700 dark:text-brand-400">
+                        <i data-lucide="shield-check" class="w-5 h-5 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-bold text-sm">Acceso de Administrador</p>
+                            <p class="text-xs opacity-80">Tienes acceso completo a todos los módulos.</p>
+                        </div>
                     </div>
+                    <a href="{% url 'curso_editar' curso.pk %}"
+                       class="inline-flex items-center gap-2 border border-brand-800/30 text-brand-800 dark:text-brand-400 dark:border-brand-400/30 hover:bg-brand-50 dark:hover:bg-brand-900/20 px-6 py-4 rounded-2xl text-sm font-bold transition-all hover:border-brand-800 dark:hover:border-brand-400 active:scale-95">
+                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                        Editar curso
+                    </a>
                 </div>
                 {% elif not inscripcion %}
                 <form method="POST">
@@ -167,14 +188,7 @@
                 </div>
                 {% endif %}
 
-                {% if user.is_authenticated and user.rol == 'administrador' or user.is_superuser %}
-                <div class="mt-4">
-                    <a href="{% url 'curso_editar' curso.pk %}"
-                       class="btn border border-brand-800/30 text-brand-800 dark:text-brand-400 dark:border-brand-400/30 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-sm">
-                        <i data-lucide="edit-2" class="w-4 h-4"></i> Editar curso
-                    </a>
-                </div>
-                {% endif %}
+
             </div>
 
             <!-- Imagen del curso -->

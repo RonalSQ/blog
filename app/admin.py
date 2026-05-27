@@ -142,3 +142,7 @@ class ProgresoModuloAdmin(ModelAdmin):
         # Es preferible que se creen solos cuando el usuario avanza o mediante otra vía, 
         # pero permitimos agregar manualmente si es necesario.
         return True
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(modulo__es_evaluable=True)
