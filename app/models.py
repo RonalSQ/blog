@@ -140,6 +140,12 @@ class Modulo(models.Model):
         verbose_name='Es actividad evaluable',
         help_text='Si se marca, el usuario no podrá completarlo manualmente; dependerá de la validación del administrador.',
     )
+    enlace_drive = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='Enlace de Drive (Actividad)',
+        help_text='Pega aquí el enlace a Google Drive u otro servicio donde esté alojada la actividad o el documento.',
+    )
     orden = models.PositiveIntegerField(default=0, verbose_name='Orden')
 
     class Meta:

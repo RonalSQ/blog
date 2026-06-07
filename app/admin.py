@@ -34,7 +34,7 @@ class UsuarioAdmin(BaseUserAdmin, ModelAdmin):
 class ModuloInline(TabularInline):
     model = Modulo
     extra = 1
-    fields = ('orden', 'titulo', 'descripcion', 'archivo_adjunto', 'video_url', 'es_evaluable')
+    fields = ('orden', 'titulo', 'descripcion', 'archivo_adjunto', 'video_url', 'es_evaluable', 'enlace_drive')
     ordering = ('orden',)
 
 

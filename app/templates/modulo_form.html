@@ -152,6 +152,24 @@
                     </div>
                 </div>
 
+                <!-- Enlace de Drive -->
+                <div class="p-8">
+                    <label class="form-label" for="id_enlace_drive">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="external-link" class="w-4 h-4 text-brand-800 dark:text-brand-400"></i>
+                            Enlace de Drive (Actividad)
+                            <span class="font-normal text-black/40 dark:text-white/40">(opcional)</span>
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <i data-lucide="link" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/30 dark:text-white/30"></i>
+                        <input type="url" id="id_enlace_drive" name="enlace_drive"
+                               class="form-input pl-11"
+                               placeholder="https://drive.google.com/..."
+                               value="{{ modulo.enlace_drive|default:'' }}">
+                    </div>
+                </div>
+
                 <!-- Archivo adjunto -->
                 <div class="p-8">
                     <label class="form-label">
