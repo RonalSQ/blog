@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import F
+from django.db.models import F, Max
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from functools import wraps
@@ -84,15 +84,15 @@ def noticia_crear_view(request):
             noticia.save()
             
             if request.POST.get('agregar_carrusel'):
-                Carrusel.objects.update_or_create(
+                max_orden = Carrusel.objects.aggregate(Max('orden'))['orden__max'] or 0
+                Carrusel.objects.create(
                     noticia_vinculada=noticia,
-                    defaults={
-                        'titulo': noticia.titulo,
-                        'subtitulo': strip_tags(noticia.contenido)[:150] + "...",
-                        'imagen_fondo': noticia.imagen_portada.name if noticia.imagen_portada else None,
-                        'texto_boton': "Leer Noticia",
-                        'activo': True
-                    }
+                    titulo=noticia.titulo,
+                    subtitulo=strip_tags(noticia.contenido)[:150] + "...",
+                    imagen_fondo=noticia.imagen_portada.name if noticia.imagen_portada else None,
+                    texto_boton="Leer Noticia",
+                    activo=True,
+                    orden=max_orden + 1
                 )
                 
             messages.success(request, f'Noticia «{titulo}» publicada exitosamente.')
@@ -115,16 +115,23 @@ def noticia_editar_view(request, pk):
         noticia.save()
         
         if request.POST.get('agregar_carrusel'):
-            Carrusel.objects.update_or_create(
-                noticia_vinculada=noticia,
-                defaults={
-                    'titulo': noticia.titulo,
-                    'subtitulo': strip_tags(noticia.contenido)[:150] + "...",
-                    'imagen_fondo': noticia.imagen_portada.name if noticia.imagen_portada else None,
-                    'texto_boton': "Leer Noticia",
-                    'activo': True
-                }
-            )
+            carrusel_existente = Carrusel.objects.filter(noticia_vinculada=noticia).first()
+            if carrusel_existente:
+                carrusel_existente.titulo = noticia.titulo
+                carrusel_existente.subtitulo = strip_tags(noticia.contenido)[:150] + "..."
+                carrusel_existente.imagen_fondo = noticia.imagen_portada.name if noticia.imagen_portada else None
+                carrusel_existente.save()
+            else:
+                max_orden = Carrusel.objects.aggregate(Max('orden'))['orden__max'] or 0
+                Carrusel.objects.create(
+                    noticia_vinculada=noticia,
+                    titulo=noticia.titulo,
+                    subtitulo=strip_tags(noticia.contenido)[:150] + "...",
+                    imagen_fondo=noticia.imagen_portada.name if noticia.imagen_portada else None,
+                    texto_boton="Leer Noticia",
+                    activo=True,
+                    orden=max_orden + 1
+                )
         else:
             # Si desmarcó la casilla, eliminar del carrusel
             Carrusel.objects.filter(noticia_vinculada=noticia).delete()
@@ -183,15 +190,15 @@ def curso_crear_view(request):
             curso.save()
             
             if request.POST.get('agregar_carrusel'):
-                Carrusel.objects.update_or_create(
+                max_orden = Carrusel.objects.aggregate(Max('orden'))['orden__max'] or 0
+                Carrusel.objects.create(
                     curso_vinculado=curso,
-                    defaults={
-                        'titulo': curso.titulo,
-                        'subtitulo': strip_tags(curso.descripcion)[:150] + "...",
-                        'imagen_fondo': curso.imagen_portada.name if curso.imagen_portada else None,
-                        'texto_boton': "Explorar Curso",
-                        'activo': True
-                    }
+                    titulo=curso.titulo,
+                    subtitulo=strip_tags(curso.descripcion)[:150] + "...",
+                    imagen_fondo=curso.imagen_portada.name if curso.imagen_portada else None,
+                    texto_boton="Explorar Curso",
+                    activo=True,
+                    orden=max_orden + 1
                 )
                 
             messages.success(request, f'Curso «{titulo}» creado. Ahora puedes agregarle módulos.')
@@ -214,16 +221,23 @@ def curso_editar_view(request, pk):
         curso.save()
         
         if request.POST.get('agregar_carrusel'):
-            Carrusel.objects.update_or_create(
-                curso_vinculado=curso,
-                defaults={
-                    'titulo': curso.titulo,
-                    'subtitulo': strip_tags(curso.descripcion)[:150] + "...",
-                    'imagen_fondo': curso.imagen_portada.name if curso.imagen_portada else None,
-                    'texto_boton': "Explorar Curso",
-                    'activo': True
-                }
-            )
+            carrusel_existente = Carrusel.objects.filter(curso_vinculado=curso).first()
+            if carrusel_existente:
+                carrusel_existente.titulo = curso.titulo
+                carrusel_existente.subtitulo = strip_tags(curso.descripcion)[:150] + "..."
+                carrusel_existente.imagen_fondo = curso.imagen_portada.name if curso.imagen_portada else None
+                carrusel_existente.save()
+            else:
+                max_orden = Carrusel.objects.aggregate(Max('orden'))['orden__max'] or 0
+                Carrusel.objects.create(
+                    curso_vinculado=curso,
+                    titulo=curso.titulo,
+                    subtitulo=strip_tags(curso.descripcion)[:150] + "...",
+                    imagen_fondo=curso.imagen_portada.name if curso.imagen_portada else None,
+                    texto_boton="Explorar Curso",
+                    activo=True,
+                    orden=max_orden + 1
+                )
         else:
             # Si desmarcó la casilla, eliminar del carrusel
             Carrusel.objects.filter(curso_vinculado=curso).delete()
