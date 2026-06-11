@@ -457,7 +457,13 @@ def modulo_eliminar_view(request, curso_pk, modulo_pk):
     modulo = get_object_or_404(Modulo, pk=modulo_pk, curso=curso)
     if request.method == 'POST':
         modulo.delete()
-        messages.success(request, 'Módulo eliminado.')
+        # Re-secuenciar los módulos restantes para que el orden sea contiguo
+        modulos_restantes = curso.modulos.all().order_by('orden')
+        for i, mod in enumerate(modulos_restantes, start=1):
+            if mod.orden != i:
+                mod.orden = i
+                mod.save(update_fields=['orden'])
+        messages.success(request, 'Módulo eliminado y orden reajustado.')
     return redirect('curso_detalle', pk=curso_pk)
 
 
