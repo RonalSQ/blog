@@ -40,6 +40,31 @@
             .btn-danger { @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold border border-red-100 dark:border-red-900/30 hover:bg-red-100 transition-all; }
         }
         [x-cloak] { display: none !important; }
+
+        /* Quill Editor Dark Mode adjustments */
+        .dark .ql-toolbar {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .dark .ql-container {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .dark .ql-stroke {
+            stroke: #e4e4e7 !important;
+        }
+        .dark .ql-fill {
+            fill: #e4e4e7 !important;
+        }
+        .dark .ql-picker {
+            color: #e4e4e7 !important;
+        }
+        .dark .ql-picker-options {
+            background-color: #1e1e1e !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .dark .ql-picker-item {
+            color: #e4e4e7 !important;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen pt-20">
