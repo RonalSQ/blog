@@ -187,16 +187,20 @@
                     </div>
 
                     {% if noticia %}
-                    <form method="POST" action="{% url 'noticia_eliminar' noticia.pk %}" class="m-0"
-                          onsubmit="return confirm('¿Seguro que quieres eliminar esta noticia? Esta acción no se puede deshacer.')">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-danger">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
-                        </button>
-                    </form>
+                    <button type="submit" form="form-eliminar-noticia" class="btn-danger">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
+                    </button>
                     {% endif %}
                 </div>
             </form>
+
+            {% if noticia %}
+            <!-- Formulario de eliminación (fuera del formulario principal para evitar anidación de forms) -->
+            <form id="form-eliminar-noticia" method="POST" action="{% url 'noticia_eliminar' noticia.pk %}" class="hidden"
+                  onsubmit="return confirm('¿Seguro que quieres eliminar esta noticia? Esta acción no se puede deshacer.')">
+                {% csrf_token %}
+            </form>
+            {% endif %}
         </div>
     </main>
 
