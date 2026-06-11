@@ -105,18 +105,13 @@
 
             <!-- Info principal -->
             <div class="lg:col-span-3 gsap-reveal">
-                <h1 class="text-fluid-3xl font-black leading-tight mb-6">{{ curso.titulo }}</h1>
+                <h1 class="text-fluid-3xl font-black leading-tight mb-4">{{ curso.titulo }}</h1>
                 <div x-data="{ expanded: false, hasOverflow: false }"
                      x-init="$nextTick(() => { hasOverflow = $refs.descContainer.scrollHeight > $refs.descContainer.clientHeight; })"
                      class="mb-8">
                     <div x-ref="descContainer"
                          :class="expanded ? '' : 'max-h-[14rem] overflow-hidden relative'"
-                         class="prose dark:prose-invert text-fluid-base text-base-textLight/70 dark:text-base-textDark/70 leading-relaxed transition-all duration-300 whitespace-pre-wrap max-w-none">
-                        {{ curso.descripcion|safe }}
-                        <div x-show="hasOverflow && !expanded"
-                             class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-base-light dark:from-base-dark to-transparent pointer-events-none">
-                        </div>
-                    </div>
+                         class="prose dark:prose-invert text-fluid-base text-base-textLight/70 dark:text-base-textDark/70 leading-relaxed transition-all duration-300 whitespace-pre-wrap max-w-none">{{ curso.descripcion|safe }}<div x-show="hasOverflow && !expanded" class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-base-light dark:from-base-dark to-transparent pointer-events-none"></div></div>
                     <button x-show="hasOverflow" @click="expanded = !expanded"
                             class="mt-2 text-sm font-bold text-brand-800 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors inline-flex items-center gap-1">
                         <span x-text="expanded ? 'Ver menos' : 'Ver más'"></span>
