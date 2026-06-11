@@ -148,32 +148,89 @@
                     <div class="rounded-xl border border-black/10 dark:border-white/10 overflow-hidden bg-white dark:bg-white/5 focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 transition-all text-base-textLight dark:text-white">
                         <div id="quill-editor" style="min-height: 150px; font-family: inherit; font-size: 1rem; border: none;"></div>
                     </div>
-                </div>
-
-                <!-- Video YouTube -->
-                <div class="p-8">
-                    <label class="form-label" for="id_video_url">
-                        <span class="flex items-center gap-2">
-                            <i data-lucide="youtube" class="w-4 h-4 text-red-500"></i>
-                            URL de Video YouTube
-                            <span class="font-normal text-black/40 dark:text-white/40">(opcional)</span>
+                        <!-- Videos de YouTube (Soporta hasta 3 videos) -->
+                <div class="p-8 flex flex-col gap-6">
+                    <div>
+                        <span class="form-label flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="youtube" class="w-4 h-4 text-red-500"></i>
+                                Videos de YouTube (máximo 3)
+                                <span class="font-normal text-black/40 dark:text-white/40">(opcional)</span>
+                            </span>
+                            <!-- Botón para añadir otro video -->
+                            <button type="button" x-show="visibleFields < 3" @click="visibleFields++"
+                                    class="inline-flex items-center gap-1 text-xs font-bold text-brand-800 dark:text-brand-400 hover:underline">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Agregar otro video
+                            </button>
                         </span>
-                    </label>
-                    <div class="relative">
-                        <i data-lucide="link" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/30 dark:text-white/30"></i>
-                        <input type="url" id="id_video_url" name="video_url"
-                               class="form-input pl-11"
-                               placeholder="https://www.youtube.com/watch?v=..."
-                               value="{{ modulo.video_url|default:'' }}"
-                               @input="updateVideoPreview($event.target.value)">
                     </div>
 
-                    <!-- Preview embed -->
-                    <div x-show="videoId" x-cloak class="mt-4 aspect-video rounded-2xl overflow-hidden bg-black shadow-xl">
-                        <iframe :src="'https://www.youtube.com/embed/' + videoId"
-                                class="w-full h-full" frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen title="Preview del video"></iframe>
+                    <!-- Video 1 (Siempre visible) -->
+                    <div class="space-y-3">
+                        <label class="text-xs font-bold text-black/50 dark:text-white/40 block">Video 1</label>
+                        <div class="relative">
+                            <i data-lucide="link" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/30 dark:text-white/30"></i>
+                            <input type="url" id="id_video_url" name="video_url"
+                                   class="form-input pl-11"
+                                   placeholder="https://www.youtube.com/watch?v=..."
+                                   value="{{ modulo.video_url|default:'' }}"
+                                   @input="updateVideoPreview1($event.target.value)">
+                        </div>
+                        <div x-show="videoId1" x-cloak class="aspect-video rounded-xl overflow-hidden bg-black shadow-lg max-w-md">
+                            <iframe :src="'https://www.youtube.com/embed/' + videoId1"
+                                    class="w-full h-full" frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen title="Preview video 1"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Video 2 -->
+                    <div class="space-y-3 pt-4 border-t border-black/5 dark:border-white/5" x-show="visibleFields >= 2" x-cloak x-transition>
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-black/50 dark:text-white/40">Video 2</label>
+                            <button type="button" @click="visibleFields = 1; $refs.videoUrl2.value = ''; videoId2 = ''"
+                                    class="text-xs font-bold text-red-600 dark:text-red-400 hover:underline">
+                                Quitar
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="link" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/30 dark:text-white/30"></i>
+                            <input type="url" id="id_video_url_2" name="video_url_2" x-ref="videoUrl2"
+                                   class="form-input pl-11"
+                                   placeholder="https://www.youtube.com/watch?v=..."
+                                   value="{{ modulo.video_url_2|default:'' }}"
+                                   @input="updateVideoPreview2($event.target.value)">
+                        </div>
+                        <div x-show="videoId2" x-cloak class="aspect-video rounded-xl overflow-hidden bg-black shadow-lg max-w-md">
+                            <iframe :src="'https://www.youtube.com/embed/' + videoId2"
+                                    class="w-full h-full" frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen title="Preview video 2"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Video 3 -->
+                    <div class="space-y-3 pt-4 border-t border-black/5 dark:border-white/5" x-show="visibleFields >= 3" x-cloak x-transition>
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-black/50 dark:text-white/40">Video 3</label>
+                            <button type="button" @click="visibleFields = 2; $refs.videoUrl3.value = ''; videoId3 = ''"
+                                    class="text-xs font-bold text-red-600 dark:text-red-400 hover:underline">
+                                Quitar
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="link" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/30 dark:text-white/30"></i>
+                            <input type="url" id="id_video_url_3" name="video_url_3" x-ref="videoUrl3"
+                                   class="form-input pl-11"
+                                   placeholder="https://www.youtube.com/watch?v=..."
+                                   value="{{ modulo.video_url_3|default:'' }}"
+                                   @input="updateVideoPreview3($event.target.value)">
+                        </div>
+                        <div x-show="videoId3" x-cloak class="aspect-video rounded-xl overflow-hidden bg-black shadow-lg max-w-md">
+                            <iframe :src="'https://www.youtube.com/embed/' + videoId3"
+                                    class="w-full h-full" frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen title="Preview video 3"></iframe>
                     </div>
                 </div>
 
@@ -308,13 +365,30 @@
 
         function moduloForm() {
             return {
-                videoId: '{% if modulo and modulo.video_url %}{{ modulo.video_url|cut:"https://www.youtube.com/watch?v="|cut:"https://youtu.be/" }}{% endif %}',
+                visibleFields: {% if modulo and modulo.video_url_3 %}3{% elif modulo and modulo.video_url_2 %}2{% else %}1{% endif %},
+                videoId1: '',
+                videoId2: '',
+                videoId3: '',
                 fileName: null,
                 dragOver: false,
-                updateVideoPreview(url) {
-                    if (!url) { this.videoId = ''; return; }
+                init() {
+                    this.videoId1 = this.extractId('{{ modulo.video_url|default:""|escapejs }}');
+                    this.videoId2 = this.extractId('{{ modulo.video_url_2|default:""|escapejs }}');
+                    this.videoId3 = this.extractId('{{ modulo.video_url_3|default:""|escapejs }}');
+                },
+                extractId(url) {
+                    if (!url) return '';
                     const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-                    this.videoId = match ? match[1] : '';
+                    return match ? match[1] : '';
+                },
+                updateVideoPreview1(url) {
+                    this.videoId1 = this.extractId(url);
+                },
+                updateVideoPreview2(url) {
+                    this.videoId2 = this.extractId(url);
+                },
+                updateVideoPreview3(url) {
+                    this.videoId3 = this.extractId(url);
                 },
                 onFile(e) {
                     const f = e.target.files[0];

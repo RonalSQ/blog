@@ -422,6 +422,8 @@ def modulo_crear_view(request, curso_pk):
         titulo = request.POST.get('titulo', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
         video_url = request.POST.get('video_url', '').strip()
+        video_url_2 = request.POST.get('video_url_2', '').strip()
+        video_url_3 = request.POST.get('video_url_3', '').strip()
         enlace_drive = request.POST.get('enlace_drive', '').strip() or None
         orden = request.POST.get('orden', 0)
         es_evaluable = request.POST.get('es_evaluable') == 'on'
@@ -431,7 +433,10 @@ def modulo_crear_view(request, curso_pk):
         else:
             modulo = Modulo(
                 curso=curso, titulo=titulo, descripcion=descripcion,
-                video_url=video_url or None, orden=orden, es_evaluable=es_evaluable,
+                video_url=video_url or None,
+                video_url_2=video_url_2 or None,
+                video_url_3=video_url_3 or None,
+                orden=orden, es_evaluable=es_evaluable,
                 enlace_drive=enlace_drive
             )
             if archivo:
@@ -451,6 +456,8 @@ def modulo_editar_view(request, curso_pk, modulo_pk):
         modulo.titulo = request.POST.get('titulo', '').strip()
         modulo.descripcion = request.POST.get('descripcion', '').strip()
         modulo.video_url = request.POST.get('video_url', '').strip() or None
+        modulo.video_url_2 = request.POST.get('video_url_2', '').strip() or None
+        modulo.video_url_3 = request.POST.get('video_url_3', '').strip() or None
         modulo.enlace_drive = request.POST.get('enlace_drive', '').strip() or None
         modulo.orden = request.POST.get('orden', modulo.orden)
         modulo.es_evaluable = request.POST.get('es_evaluable') == 'on'

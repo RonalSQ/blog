@@ -132,8 +132,20 @@ class Modulo(models.Model):
     video_url = models.URLField(
         blank=True,
         null=True,
-        verbose_name='URL de Video (YouTube)',
+        verbose_name='URL de Video 1 (YouTube)',
         help_text='Pega aquí el enlace del video de YouTube para embeber.',
+    )
+    video_url_2 = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='URL de Video 2 (YouTube)',
+        help_text='Enlace opcional para un segundo video de YouTube.',
+    )
+    video_url_3 = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='URL de Video 3 (YouTube)',
+        help_text='Enlace opcional para un tercer video de YouTube.',
     )
     es_evaluable = models.BooleanField(
         default=False,
@@ -156,13 +168,33 @@ class Modulo(models.Model):
     def __str__(self):
         return f'{self.curso.titulo} — {self.titulo}'
 
-    @property
-    def youtube_id(self):
-        if not self.video_url:
+    def _extract_youtube_id(self, url):
+        if not url:
             return None
         import re
-        match = re.search(r'(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})', self.video_url)
+        match = re.search(r'(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})', url)
         return match.group(1) if match else None
+
+    @property
+    def youtube_id(self):
+        return self._extract_youtube_id(self.video_url)
+
+    @property
+    def youtube_id_2(self):
+        return self._extract_youtube_id(self.video_url_2)
+
+    @property
+    def youtube_id_3(self):
+        return self._extract_youtube_id(self.video_url_3)
+
+    @property
+    def youtube_ids(self):
+        ids = []
+        for url in [self.video_url, self.video_url_2, self.video_url_3]:
+            yid = self._extract_youtube_id(url)
+            if yid:
+                ids.append(yid)
+        return ids
 
 
 # ─────────────────────────────────────────────
