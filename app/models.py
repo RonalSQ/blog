@@ -212,8 +212,8 @@ class Carrusel(models.Model):
     
     # Enlaces
     enlace_url = models.URLField(blank=True, null=True, verbose_name='Enlace Externo (Opcional)')
-    noticia_vinculada = models.ForeignKey(Noticia, on_delete=models.SET_NULL, blank=True, null=True, related_name='slides_carrusel', verbose_name='Noticia Vinculada')
-    curso_vinculado = models.ForeignKey(Curso, on_delete=models.SET_NULL, blank=True, null=True, related_name='slides_carrusel', verbose_name='Curso Vinculado')
+    noticia_vinculada = models.ForeignKey(Noticia, on_delete=models.CASCADE, blank=True, null=True, related_name='slides_carrusel', verbose_name='Noticia Vinculada')
+    curso_vinculado = models.ForeignKey(Curso, on_delete=models.CASCADE, blank=True, null=True, related_name='slides_carrusel', verbose_name='Curso Vinculado')
     
     texto_boton = models.CharField(max_length=50, default='Ver Detalles', verbose_name='Texto del Botón')
     
