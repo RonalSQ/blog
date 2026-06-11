@@ -313,6 +313,9 @@ def cleanup_old_file_on_change(sender, instance, **kwargs):
     """Antes de guardar, si cambió un archivo, elimina el anterior."""
     if sender not in _FILE_FIELD_MODELS:
         return
+    # Si es carrusel vinculado a curso/noticia, no borrar archivos ya que pertenecen a los mismos
+    if sender == Carrusel and (instance.noticia_vinculada_id is not None or instance.curso_vinculado_id is not None):
+        return
     if not instance.pk:
         return  # Es una creación nueva, no hay archivo viejo
     try:
@@ -330,6 +333,9 @@ def cleanup_old_file_on_change(sender, instance, **kwargs):
 def cleanup_files_on_delete(sender, instance, **kwargs):
     """Después de borrar un objeto, elimina sus archivos del storage."""
     if sender not in _FILE_FIELD_MODELS:
+        return
+    # Si es carrusel vinculado a curso/noticia, no borrar archivos ya que pertenecen a los mismos
+    if sender == Carrusel and (instance.noticia_vinculada_id is not None or instance.curso_vinculado_id is not None):
         return
     for field_name in _FILE_FIELD_MODELS[sender]:
         file_field = getattr(instance, field_name, None)
