@@ -63,6 +63,9 @@
             margin-top: 0.25rem !important;
             margin-bottom: 0.25rem !important;
         }
+        .prose > *:first-child {
+            margin-top: 0 !important;
+        }
     </style>
 </head>
 <body x-data x-init="setTimeout(() => { lucide.createIcons(); initAnimations(); }, 60)"
@@ -107,11 +110,11 @@
                      x-init="$nextTick(() => { hasOverflow = $refs.descContainer.scrollHeight > $refs.descContainer.clientHeight; })"
                      class="mb-8">
                     <div x-ref="descContainer"
-                         :class="expanded ? '' : 'max-h-[7.5rem] overflow-hidden relative'"
+                         :class="expanded ? '' : 'max-h-[14rem] overflow-hidden relative'"
                          class="prose dark:prose-invert text-fluid-base text-base-textLight/70 dark:text-base-textDark/70 leading-relaxed transition-all duration-300 whitespace-pre-wrap max-w-none">
                         {{ curso.descripcion|safe }}
                         <div x-show="hasOverflow && !expanded"
-                             class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-base-light dark:from-base-dark to-transparent pointer-events-none">
+                             class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-base-light dark:from-base-dark to-transparent pointer-events-none">
                         </div>
                     </div>
                     <button x-show="hasOverflow" @click="expanded = !expanded"
