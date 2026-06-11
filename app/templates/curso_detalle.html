@@ -44,6 +44,25 @@
         }
         .gsap-reveal { opacity: 0; transform: translateY(32px); }
         [x-cloak] { display: none !important; }
+
+        /* Ajustes de espaciado para contenido de Quill (prose) */
+        .prose p {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+            margin-top: 1rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .prose ul, .prose ol {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+            padding-left: 1.5rem !important;
+        }
+        .prose li {
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.25rem !important;
+        }
     </style>
 </head>
 <body x-data x-init="setTimeout(() => { lucide.createIcons(); initAnimations(); }, 60)"
@@ -234,7 +253,7 @@
                             <div>
                                 <h3 class="font-bold text-lg sm:text-xl">{{ modulo.titulo }}</h3>
                                 {% if modulo.descripcion %}
-                                <p class="text-base text-base-textLight/60 dark:text-white/50 mt-1 line-clamp-2">{{ modulo.descripcion|striptags }}</p>
+                                <p x-show="!open" class="text-base text-base-textLight/60 dark:text-white/50 mt-1 line-clamp-2">{{ modulo.descripcion|striptags }}</p>
                                 {% endif %}
                             </div>
                         </div>
