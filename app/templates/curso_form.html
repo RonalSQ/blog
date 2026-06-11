@@ -202,16 +202,20 @@
                         <a href="{% url 'cursos' %}" class="btn-ghost">Cancelar</a>
                     </div>
                     {% if curso %}
-                    <form method="POST" action="{% url 'curso_eliminar' curso.pk %}" class="m-0"
-                          onsubmit="return confirm('¿Eliminar este curso y todos sus módulos? Esta acción es irreversible.')">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-danger">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar Curso
-                        </button>
-                    </form>
+                    <button type="submit" form="form-eliminar-curso" class="btn-danger">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar Curso
+                    </button>
                     {% endif %}
                 </div>
             </form>
+
+            {% if curso %}
+            <!-- Formulario de eliminación (fuera del formulario principal para evitar anidación de forms) -->
+            <form id="form-eliminar-curso" method="POST" action="{% url 'curso_eliminar' curso.pk %}" class="hidden"
+                  onsubmit="return confirm('¿Eliminar este curso y todos sus módulos? Esta acción es irreversible.')">
+                {% csrf_token %}
+            </form>
+            {% endif %}
         </div>
     </main>
 
